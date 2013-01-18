@@ -5,7 +5,7 @@
 #include <ruby.h>
 
 void Init_semaphore(void);
-VALUE semaphore_initialize(VALUE, VALUE, VALUE);
+VALUE semaphore_open(int, VALUE*, VALUE);
 VALUE semaphore_post(VALUE);
 VALUE semaphore_wait(VALUE);
 VALUE semaphore_trywait(VALUE);
@@ -18,14 +18,49 @@ VALUE semaphore_getvalue(VALUE);
 
 void Init_semaphore()
 {
+	VALUE rb_cFile;
+	VALUE rb_cStat;
 	VALUE rb_mMultiProcessing;
 	VALUE rb_cSemaphore;
+
+	rb_cFile = rb_const_get(rb_cObject, rb_intern("File"));
+	rb_cStat = rb_const_get(rb_cFile, rb_intern("Stat"));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_ISUID")))
+		rb_define_const(rb_cStat, "S_ISUID", INT2FIX(S_ISUID));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_ISGID")))
+		rb_define_const(rb_cStat, "S_ISGID", INT2FIX(S_ISGID));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IVTX")))
+		rb_define_const(rb_cStat, "S_ISVTX", INT2FIX(S_ISVTX));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IRWXU")))
+		rb_define_const(rb_cStat, "S_IRWXU", INT2FIX(S_IRWXU));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IRUSR")))
+		rb_define_const(rb_cStat, "S_IRUSR", INT2FIX(S_IRUSR));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IWUSR")))
+		rb_define_const(rb_cStat, "S_IWUSR", INT2FIX(S_IWUSR));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IXUSR")))
+		rb_define_const(rb_cStat, "S_IXUSR", INT2FIX(S_IXUSR));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IRWXG")))
+		rb_define_const(rb_cStat, "S_IRWXG", INT2FIX(S_IRWXG));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IRGRP")))
+		rb_define_const(rb_cStat, "S_IRGRP", INT2FIX(S_IRGRP));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IWGRP")))
+		rb_define_const(rb_cStat, "S_IWGRP", INT2FIX(S_IWGRP));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IXGRP")))
+		rb_define_const(rb_cStat, "S_IXGRP", INT2FIX(S_IXGRP));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IRWXO")))
+		rb_define_const(rb_cStat, "S_IRWXO", INT2FIX(S_IRWXO));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IROTH")))
+		rb_define_const(rb_cStat, "S_IROTH", INT2FIX(S_IROTH));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IWOTH")))
+		rb_define_const(rb_cStat, "S_IWOTH", INT2FIX(S_IWOTH));
+	if(!rb_const_defined_at(rb_cStat,rb_intern("S_IXOTH")))
+		rb_define_const(rb_cStat, "S_IXOTH", INT2FIX(S_IXOTH));
+
 
 	rb_mMultiProcessing = rb_define_module("MultiProcessing");
 	rb_cSemaphore = rb_define_class_under(rb_mMultiProcessing, "Semaphore", rb_cObject);
 
-	rb_define_method(rb_cSemaphore, "initialize", semaphore_initialize, 2);
-	rb_define_alias(rb_cSemaphore, "open", "initialize");
+	rb_define_method(rb_cSemaphore, "open", semaphore_open, -1);
 
 	rb_define_method(rb_cSemaphore, "post", semaphore_post, 0);
 	rb_define_alias(rb_cSemaphore, "V", "post");
@@ -54,15 +89,30 @@ void Init_semaphore()
 	return;
 }
 
-VALUE semaphore_initialize(VALUE rb_self, VALUE rb_name, VALUE rb_n)
+VALUE semaphore_open(int argc, VALUE* argv, VALUE rb_self)
 {
+	VALUE rb_name, rb_oflag, rb_mode, rb_n;
 	unsigned int n;
 	char* name;
+	int oflag;
+	mode_t mode;
 	sem_t* sem;
 
-	n = NUM2INT(rb_n);
+	rb_scan_args(argc, argv, "22", &rb_name, &rb_oflag, &rb_mode, &rb_n);
+
 	name = StringValueCStr(rb_name);
-	sem = sem_open(name, O_CREAT, S_IRUSR|S_IWUSR, n);
+	oflag = FIX2INT(rb_oflag);
+	mode = NUM2MODET(rb_mode);
+	n = NUM2INT(rb_n);
+	if(argc == 4)
+	{
+		sem = sem_open(name, oflag, mode, n);
+	}
+	else
+	{
+		sem = sem_open(name,oflag);
+	}
+	//sem = sem_open(name, O_CREAT, S_IRUSR|S_IWUSR, n);
 	if(sem == SEM_FAILED)
 	{
 		rb_sys_fail("sem_open");

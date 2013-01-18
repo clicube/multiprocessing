@@ -1,6 +1,3 @@
-# Makefile
-Makefile
-
 # Object files
 *.o
 
@@ -19,3 +16,7 @@ Makefile
 *.exe
 *.out
 *.app
+
+# Others
+Makefile
+*.log
