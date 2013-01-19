@@ -4,8 +4,13 @@ module MultiProcessing
   class ConditionVariable
 
     def initialize name=nil
-      @waiting = Semaphore.new 0
-      @signal = Semaphore.new 0
+      if !name
+        @waiting = Semaphore.new 0
+        @signal = Semaphore.new 0
+      else
+        @waiting = Semaphore.new name+"_waiting", Fcntl::O_CREAT, File::Stat::S_IRUSR|File::Stat::S_IWUSR, 0
+        @signal = Semaphore.new name+"_waiting", Fcntl::O_CREAT, File::Stat::S_IRUSR|File::Stat::S_IWUSR, 0
+      end
     end
 
     def signal
@@ -31,13 +36,23 @@ module MultiProcessing
       self
     end
 
+    def close
+      @waiting.close
+      @signal.close
+    end
+
+    def unlink
+      @waiting.unlink
+      @signal.unlink
+    end
+
   end
 end
 
 if __FILE__ == $0
 
   require_relative 'mutex'
- 
+
   m = MultiProcessing::Mutex.new
   cond = MultiProcessing::ConditionVariable.new
   fork do
