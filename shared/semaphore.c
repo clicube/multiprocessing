@@ -21,6 +21,7 @@ void Init_semaphore()
 	VALUE rb_cFile;
 	VALUE rb_cStat;
 	VALUE rb_mMultiProcessing;
+	VALUE rb_mShared;
 	VALUE rb_cSemaphore;
 	VALUE rb_cSem_t;
 
@@ -59,7 +60,8 @@ void Init_semaphore()
 
 
 	rb_mMultiProcessing = rb_define_module("MultiProcessing");
-	rb_cSemaphore = rb_define_class_under(rb_mMultiProcessing, "Semaphore", rb_cObject);
+	rb_mShared = rb_define_module_under(rb_mMultiProcessing, "Shared");
+	rb_cSemaphore = rb_define_class_under(rb_mShared, "Semaphore", rb_cObject);
 	rb_cSem_t = rb_define_class_under(rb_cSemaphore, "Sem_t", rb_cObject);
 
 	rb_define_method(rb_cSemaphore, "open", semaphore_open, -1);
@@ -98,12 +100,13 @@ struct sem_t_wrap
 
 VALUE semaphore_wrap_sem(sem_t* sem)
 {
-	VALUE rb_mMultiProcessing, rb_cSemaphore, rb_cSem_t;
+	VALUE rb_mMultiProcessing, rb_mShared, rb_cSemaphore, rb_cSem_t;
 	VALUE rb_sem;
 	struct sem_t_wrap* sem_wrap;
 
 	rb_mMultiProcessing = rb_const_get(rb_cObject, rb_intern("MultiProcessing"));
-	rb_cSemaphore = rb_const_get(rb_mMultiProcessing, rb_intern("Semaphore"));
+	rb_mShared = rb_const_get(rb_mMultiProcessing, rb_intern("Shared"));
+	rb_cSemaphore = rb_const_get(rb_mShared, rb_intern("Semaphore"));
 	rb_cSem_t = rb_const_get(rb_cSemaphore, rb_intern("Sem_t"));
 
 	rb_sem = Data_Make_Struct(rb_cSem_t, struct sem_t_wrap, 0, -1, sem_wrap);
