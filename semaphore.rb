@@ -38,7 +38,7 @@ module MultiProcessing
 end
 
 if $0 == __FILE__
-  s = MultiProcessing::Semaphore.new(1)
+  s = MultiProcessing::Semaphore.new 1
   puts s.name
   fork
   s.wait
