@@ -8,12 +8,13 @@ module MultiProcessing
 
 		def initialize
 			@pout,@pin = IO.pipe
-			@pin.write 1
-			@pin.flush
+      @pin.syswrite 1
+			#@pin.write 1
+      #@pin.flush
 		end
 
 		def lock
-			if @locking_pid != Process.pid || @locking_thread != Thread.current
+			unless @locking_pid == Process.pid && @locking_thread == Thread.current
 				@pout.readpartial 1
 				@locking_pid = Process.pid
 				@locking_thread = Thread.current
@@ -26,8 +27,9 @@ module MultiProcessing
 		def locked?
 			begin
 				@pout.read_nonblock 1
-				@pin.write 1
-				@pin.flush
+        @pin.syswrite 1
+				#@pin.write 1
+        #@pin.flush
 				return false
 			rescue Errno::EAGAIN => e
 				return true
@@ -47,12 +49,14 @@ module MultiProcessing
 		def unlock
 			return nil if !locked?
 			if @locking_pid == Process.pid && @locking_thread == Thread.current
-				@pin.write 1
-				@pin.flush
+        @pin.syswrite 1
+				#@pin.write 1
+        #@pin.flush
 				@locking_pid = nil
+        @locking_thread = nil
 				return self
 			else
-				raise ProcessError.new("mutex was tried unlocking in process/thread which didn't lock this mutex")
+				raise ProcessError.new("mutex was tried unlocking in process/thread which didn't lock this mutex #{@locking_pid} #{Process.pid}")
 			end
 		end
 

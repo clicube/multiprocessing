@@ -31,22 +31,7 @@ module MultiProcessing
     end
 
     def length
-      begin
-        return @count.value
-      rescue # MacOS can not use Semaphore#value
-        n = 0
-        begin
-          loop do
-          @count.trywait
-          n += 1
-          end
-        rescue Errno::EAGAIN
-          n.times do
-            @count.post
-          end
-        end
-        return n
-      end
+      return @count.value
     end
     alias :size :length
 
@@ -119,6 +104,7 @@ if __FILE__ == $0
   q = MultiProcessing::Queue.new
 
   q.push(0)
+  sleep 1
   pid = fork
   if !pid
     q.push("111")

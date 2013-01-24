@@ -15,8 +15,9 @@ module MultiProcessing
 		def signal
 			begin
 				@waiting_pout.read_nonblock 1
-				@signal_pin.write 1
-				@signal_pin.flush
+        @signal_pin.syswrite 1
+				#@signal_pin.write 1
+				#@signal_pin.flush
 				return true
 			rescue Errno::EAGAIN
 				return nil
@@ -25,8 +26,9 @@ module MultiProcessing
 
 		def wait(mutex)
 			raise Process::ProcessError.new("mutex must be instance of Process::Mutex") if mutex.class != MultiProcessing::Mutex
-			@waiting_pin.write 1
-			@waiting_pin.flush
+      @waiting_pin.syswrite 1
+			#@waiting_pin.write 1
+			#@waiting_pin.flush
 			mutex.unlock
 			@signal_pout.readpartial 1
 			mutex.lock
