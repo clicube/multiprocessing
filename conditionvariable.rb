@@ -1,3 +1,4 @@
+require_relative 'processerror'
 require_relative 'mutex'
 
 module MultiProcessing
@@ -25,7 +26,7 @@ module MultiProcessing
 		end
 
 		def wait(mutex)
-			raise Process::ProcessError.new("mutex must be instance of Process::Mutex") if mutex.class != MultiProcessing::Mutex
+			raise MultiProcessing::ProcessError.new("mutex must be instance of MultiProcessing::Mutex") if mutex.class != MultiProcessing::Mutex
       @waiting_pin.syswrite 1
 			#@waiting_pin.write 1
 			#@waiting_pin.flush

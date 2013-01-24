@@ -1,8 +1,7 @@
 require 'thread'
+require_relative 'processerror'
 
 module MultiProcessing
-
-	class ProcessError < StandardError; end
 
 	class Mutex
 
