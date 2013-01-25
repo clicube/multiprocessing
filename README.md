@@ -19,7 +19,8 @@ Unix系OSのみでのみ使用する事ができます．
 
 （Windowsするためには，名前付き共有セマフォなどの同期機能を使用する必要がありそうですね・・・）
 
-== Mutex
+Mutex
+----------------
 
 標準添付ライブラリthreadのMutexと同様の使い方をします．
 
@@ -39,7 +40,8 @@ lockした後unlockする前にforkすると（synchronize中でforkした場合
 
 lockした後unlcokする前にforkした場合unlockの返り値が，親プロセスではself，子プロセスではnilになります．
 
-== ConditionVariable
+ConditionVariable
+----------------
 
 標準添付ライブラリthreadのConditionVariableと同じ使い方をします．
 
@@ -56,7 +58,8 @@ lockした後unlcokする前にforkした場合unlockの返り値が，親プロ
       cond.signal
       Process.waitall
 
-== Semaphore
+Semaphore
+----------------
 
 Semaphoreは標準添付ライブラリに含まれていませんが作りました．
 
@@ -67,7 +70,8 @@ Pでリソースのロック，Vで解放をします．
 
 Pはlock，Vはunlockという名前のエイリアスが用意してあります．
 
-== Queue
+Queue
+----------------
 
 Queueも標準threadライブラリのQueueと同様の使い方をします．
 
@@ -87,7 +91,8 @@ Queueも標準threadライブラリのQueueと同様の使い方をします．
 
 として，書き込みスレッドの終了を待ってください．close後にキューにデータをpushすると例外が発生します．
 
-== Processクラスについて
+Processクラスについて
+----------------
 
 標準のProcessモジュールは
 
@@ -95,24 +100,28 @@ Queueも標準threadライブラリのQueueと同様の使い方をします．
 
 とのことなので，プロセスを表現するっぽいクラスを作ってみました．
 
-== テストについて
+テストについて
+----------------
 
 minitest/specを使ってみました．
 でもテストの書き方がよくわかりません＞＜ 教えてください！！
 
 今のところ，Mutex, Queue, Processのテストを用意しました．
 
-== shared以下について
+shared以下について
+----------------
 
 shared semaphore を使用して作るつもりだった頃のものです．
 SemaphoreがC言語の拡張で書かれていて，他はRubyで書かれています．
 名前付きの同期オブジェクトを使うならshared semaphoreもよいのかもしれない．
 
-== その他
+その他
+----------------
 
 名前付きパイプなどが使えるようにしたら，fork以外でプロセスを増やしても使える気がするなあ・・・
 
-== ライセンス
+ライセンス
+----------------
 
 Author: clicube@github
 MIT License
