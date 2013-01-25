@@ -13,9 +13,9 @@ module MultiProcessing
 		end
 
 		def lock
-			unless @locking_pid == Process.pid && @locking_thread == Thread.current
+			unless @locking_pid == ::Process.pid && @locking_thread == Thread.current
 				@pout.readpartial 1
-				@locking_pid = Process.pid
+				@locking_pid = ::Process.pid
 				@locking_thread = Thread.current
 			else
 				raise ProcessError.new "mutex was tried locking twice"
@@ -38,7 +38,7 @@ module MultiProcessing
 		def try_lock
 			begin
 				@pout.read_nonblock 1
-				@locking_pid = Process.pid
+				@locking_pid = ::Process.pid
 				return true
 			rescue Errno::EAGAIN
 				return false
@@ -47,7 +47,7 @@ module MultiProcessing
 
 		def unlock
 			return nil if !locked?
-			if @locking_pid == Process.pid && @locking_thread == Thread.current
+			if @locking_pid == ::Process.pid && @locking_thread == Thread.current
         @pin.syswrite 1
 				#@pin.write 1
         #@pin.flush
@@ -55,7 +55,8 @@ module MultiProcessing
         @locking_thread = nil
 				return self
 			else
-				raise ProcessError.new("mutex was tried unlocking in process/thread which didn't lock this mutex #{@locking_pid} #{Process.pid}")
+        return nil
+				# raise ProcessError.new("mutex was tried unlocking in process/thread which didn't lock this mutex #{@locking_pid} #{::Process.pid}")
 			end
 		end
 
@@ -69,67 +70,72 @@ module MultiProcessing
 			return ret
 		end
 
-		def sleep(timeout=nil)
-			sleep timeout
-			unlock
-		end
-	end
+		def sleep timeout=nil
+      flg_locked = unlock
+      if timeout != nil
+        ::Kernel.sleep timeout
+      else
+        ::Kernel.sleep
+      end
+      lock if flg_locked
+    end
+  end
 end
 
 if __FILE__ == $0
 
-	puts "use lock and unlock"
-	m = MultiProcessing::Mutex.new
-	puts "locking mutex in main process(pid:#{Process.pid})"
-	m.lock
-	puts "locked mutex in main process(pid:#{Process.pid})"
-	pid1 = fork do
-		puts "locking mutex in child process(pid:#{Process.pid})"
-		m.lock
-		puts "locked mutex in child process(pid:#{Process.pid})"
-		sleep 1
-		puts "unlocking mutex in child process(pid:#{Process.pid})"
-		m.unlock
-		puts "unlocked mutex in child process(pid:#{Process.pid})"
-		exit
-	end
-	pid2 = fork do
-		puts "locking mutex in child process(pid:#{Process.pid})"
-		m.lock
-		puts "locked mutex in child process(pid:#{Process.pid})"
-		sleep 1
-		puts "unlocking mutex in child process(pid:#{Process.pid})"
-		m.unlock
-		puts "unlocked mutex in child process(pid:#{Process.pid})"
-		exit
-	end
+  puts "use lock and unlock"
+  m = MultiProcessing::Mutex.new
+  puts "locking mutex in main process(pid:#{Process.pid})"
+  m.lock
+  puts "locked mutex in main process(pid:#{Process.pid})"
+  pid1 = fork do
+    puts "locking mutex in child process(pid:#{Process.pid})"
+    m.lock
+    puts "locked mutex in child process(pid:#{Process.pid})"
+    sleep 1
+    puts "unlocking mutex in child process(pid:#{Process.pid})"
+    m.unlock
+    puts "unlocked mutex in child process(pid:#{Process.pid})"
+    exit
+  end
+  pid2 = fork do
+    puts "locking mutex in child process(pid:#{Process.pid})"
+    m.lock
+    puts "locked mutex in child process(pid:#{Process.pid})"
+    sleep 1
+    puts "unlocking mutex in child process(pid:#{Process.pid})"
+    m.unlock
+    puts "unlocked mutex in child process(pid:#{Process.pid})"
+    exit
+  end
 
-	sleep 1
-	puts "unlocking mutex in main process(pid:#{Process.pid})"
-	m.unlock
-	puts "unlocked mutex in main process(pid:#{Process.pid})"
-	Process.waitall
+  sleep 1
+  puts "unlocking mutex in main process(pid:#{Process.pid})"
+  m.unlock
+  puts "unlocked mutex in main process(pid:#{Process.pid})"
+  Process.waitall
 
 
-	puts ""
-	puts "use synchrnize"
-	m = MultiProcessing::Mutex.new
-	if pid = fork
-		puts "synchronizing in main process(pid:#{Process.pid})"
-		m.synchronize do
-			puts "something to do in main process(pid:#{Process.pid})"
-			sleep 2
-			puts "end something in main process(pid:#{Process.pid})"
-		end
-		Process.waitpid pid
-	else
-		sleep 1
-		puts "synchronizing in child process(pid:#{Process.pid})"
-		m.synchronize do
-			puts "something to do in child process(pid:#{Process.pid})"
-			sleep 1
-			puts "end something in child process(pid:#{Process.pid})"
-		end
-	end
+  puts ""
+  puts "use synchrnize"
+  m = MultiProcessing::Mutex.new
+  if pid = fork
+    puts "synchronizing in main process(pid:#{Process.pid})"
+    m.synchronize do
+      puts "something to do in main process(pid:#{Process.pid})"
+      sleep 2
+      puts "end something in main process(pid:#{Process.pid})"
+    end
+    Process.waitpid pid
+  else
+    sleep 1
+    puts "synchronizing in child process(pid:#{Process.pid})"
+    m.synchronize do
+      puts "something to do in child process(pid:#{Process.pid})"
+      sleep 1
+      puts "end something in child process(pid:#{Process.pid})"
+    end
+  end
 end
 

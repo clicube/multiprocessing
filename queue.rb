@@ -1,9 +1,11 @@
 require 'thread'
 require_relative 'semaphore'
 require_relative 'mutex'
-require_relative 'conditionvariable'
 
 module MultiProcessing
+
+  class QueueError < StandardError; end
+
   class Queue
 
     def initialize
@@ -13,6 +15,8 @@ module MultiProcessing
       @len_pout, @len_pin = IO.pipe
       @data_pout, @data_pin = IO.pipe
       @enq_queue = ::Queue.new
+      @queue_zero_cond = ::ConditionVariable.new
+      @closed = false
     end
 
     def clear
@@ -34,10 +38,7 @@ module MultiProcessing
       return @count.value
     end
     alias :size :length
-
-    def num_waiting
-
-    end
+    alias :count :length
 
     def deq non_block=false
       data = ""
@@ -72,6 +73,7 @@ module MultiProcessing
     alias :shift :deq
 
     def enq obj
+      raise QueueError.new("Queue already closed") if @closed
       unless(@enq_thread && @enq_thread.alive?)
         @enq_queue.clear
         @enq_thread = Thread.new &method(:enq_loop)
@@ -92,9 +94,22 @@ module MultiProcessing
           @data_pin.write data
           @data_pin.flush
         end
+        Thread.exit if @closed && @enq_queue.length == 0
       end
     end
     private :enq_loop
+
+    def close
+      @closed = true
+      self
+    end
+
+    def join_thread
+      raise QueueError.new("must be closed before join_thread") unless @closed
+      if @enq_thread && @enq_thread.alive?
+        @enq_thread.join
+      end
+    end
 
   end
 end
