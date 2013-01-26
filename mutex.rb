@@ -38,6 +38,7 @@ module MultiProcessing
     def try_lock
       begin
         @pout.read_nonblock 1
+        @locking_thread = Thread.current
         @locking_pid = ::Process.pid
         return true
       rescue Errno::EAGAIN

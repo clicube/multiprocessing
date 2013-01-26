@@ -81,9 +81,10 @@ describe MultiProcessing::Mutex do
     process.value.success?.must_equal true
   end
 
-  it "returns true when try_lock succeed" do
+  it "returns true when try_lock succeed, and lock correctly" do
     @mutex.try_lock.must_equal true
     @mutex.locked?.must_equal true
+    @mutex.unlock.must_be_same_as @mutex
   end
 
   it "returns false when try_lock failed" do
@@ -104,8 +105,10 @@ describe MultiProcessing::Mutex do
     end
     sleep 0.1
     @mutex.try_lock.must_equal true
+    @mutex.unlock
     sleep 0.2
     @mutex.try_lock.must_equal false
+    timeout(1){ process.value }.success?.must_equal true
   end
 
 
