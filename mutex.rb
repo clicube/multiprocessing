@@ -3,81 +3,81 @@ require_relative 'processerror'
 
 module MultiProcessing
 
-	class Mutex
+  class Mutex
 
-		def initialize
-			@pout,@pin = IO.pipe
+    def initialize
+      @pout,@pin = IO.pipe
       @pin.syswrite 1
-			#@pin.write 1
+      #@pin.write 1
       #@pin.flush
-		end
+    end
 
-		def lock
-			unless @locking_pid == ::Process.pid && @locking_thread == Thread.current
-				@pout.readpartial 1
-				@locking_pid = ::Process.pid
-				@locking_thread = Thread.current
-			else
-				raise ProcessError.new "mutex was tried locking twice"
-			end
-			self
-		end
+    def lock
+      unless @locking_pid == ::Process.pid && @locking_thread == Thread.current
+        @pout.readpartial 1
+        @locking_pid = ::Process.pid
+        @locking_thread = Thread.current
+      else
+        raise ProcessError.new "mutex was tried locking twice"
+      end
+      self
+    end
 
-		def locked?
-			begin
-				@pout.read_nonblock 1
+    def locked?
+      begin
+        @pout.read_nonblock 1
         @pin.syswrite 1
-				#@pin.write 1
+        #@pin.write 1
         #@pin.flush
-				return false
-			rescue Errno::EAGAIN => e
-				return true
-			end
-		end
+        return false
+      rescue Errno::EAGAIN => e
+        return true
+      end
+    end
 
-		def try_lock
-			begin
-				@pout.read_nonblock 1
-				@locking_pid = ::Process.pid
-				return true
-			rescue Errno::EAGAIN
-				return false
-			end
-		end
+    def try_lock
+      begin
+        @pout.read_nonblock 1
+        @locking_pid = ::Process.pid
+        return true
+      rescue Errno::EAGAIN
+        return false
+      end
+    end
 
-		def unlock
-			return nil if !locked?
-			if @locking_pid == ::Process.pid && @locking_thread == Thread.current
+    def unlock
+      raise ProcessError.new("Attempt to unlock a mutex which is not locked") if !locked?
+      if @locking_pid == ::Process.pid && @locking_thread == Thread.current
         @pin.syswrite 1
-				#@pin.write 1
+        #@pin.write 1
         #@pin.flush
-				@locking_pid = nil
+        @locking_pid = nil
         @locking_thread = nil
-				return self
-			else
-        return nil
-				# raise ProcessError.new("mutex was tried unlocking in process/thread which didn't lock this mutex #{@locking_pid} #{::Process.pid}")
-			end
-		end
+        return self
+      else
+        #return nil
+        raise ProcessError.new("mutex was tried unlocking in process/thread which didn't lock this mutex #{@locking_pid} #{::Process.pid}")
+      end
+    end
 
-		def synchronize
-			begin
-				lock
-				ret = yield
-			ensure
-				unlock
-			end
-			return ret
-		end
+    def synchronize
+      begin
+        lock
+        ret = yield
+      ensure
+        unlock
+      end
+      return ret
+    end
 
-		def sleep timeout=nil
-      flg_locked = unlock
+    def sleep timeout=nil
+      unlock
       if timeout != nil
         ::Kernel.sleep timeout
       else
         ::Kernel.sleep
       end
-      lock if flg_locked
+      lock
     end
   end
 end

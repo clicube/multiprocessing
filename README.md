@@ -1,17 +1,18 @@
 ruby-multiprocessing
 ====================
 
-ruby-multiprocessingはRubyにおいてマルチプロセスなプログラムにおいて，
+ruby-multiprocessingはRubyでマルチプロセスなプログラムにおいて，
 プロセス間同期とプロセス間通信の機能を提供します（することを目指しています）．
-各クラスは，Rubyの標準添付ライブラリthreadで提供されているクラスのような動作をすることを目指しています．
+各クラスはRubyの標準添付ライブラリthreadで提供されているクラスのような動作をすることを目指しています．
 
-現状で作成されたクラスは以下の4つです．
+現状で使用できるクラスは以下の5つです．
 各クラスはMultiProcessingクラスの下に作成されています．
 
 * Mutex
 * ConditionVariable
 * Semaphore
 * Queue
+* Process
 
 いずれのクラスもプロセス間通信にパイプ（IO.pipe）を使用しています．
 また，複数のプロセスで1つの同期オブジェクトを共有するためにforkを使用する事を想定しているため，
@@ -75,10 +76,10 @@ Queue
 
 Queueも標準threadライブラリのQueueと同様の使い方をします．
 
-    q = MultiProcessing::Ququq.new
+    q = MultiProcessing::Quque.new
     fork do
       q.push :nyan
-			q.close.join_thread
+      q.close.join_thread
     end
     p q.pop
 
@@ -91,7 +92,9 @@ Queueも標準threadライブラリのQueueと同様の使い方をします．
 
 として，書き込みスレッドの終了を待ってください．close後にキューにデータをpushすると例外が発生します．
 
-Processクラスについて
+オブジェクトのシリアライズにMarshal.dumpを使用しているので，Marshal.dumpできないオブジェクトをpushできません．
+
+Process
 ----------------
 
 標準のProcessモジュールは
@@ -99,6 +102,11 @@ Processクラスについて
  Process がプロセスを表現するクラスではなく、プロセスに対する操作 をまとめたモジュールであることに注意してください。
 
 とのことなので，プロセスを表現するっぽいクラスを作ってみました．
+
+    p = MultiProcessing::Process.new { # something to do }
+    p.join
+
+とかできます．
 
 テストについて
 ----------------
@@ -124,5 +132,6 @@ SemaphoreがC言語の拡張で書かれていて，他はRubyで書かれてい
 ----------------
 
 Author: clicube@github
+
 MIT License
 

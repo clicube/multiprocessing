@@ -23,8 +23,8 @@ describe MultiProcessing::Mutex do
     @mutex.unlock.must_be_same_as @mutex
   end
 
-  it "returns nil when being unlocked if not locked" do
-    @mutex.unlock.must_be_nil
+  it "raises ProcessError when being unlocked if not locked" do
+    proc{ @mutex.unlock }.must_raise MultiProcessing::ProcessError
   end
 
   it "s locked? returns false if not locked" do
@@ -70,17 +70,15 @@ describe MultiProcessing::Mutex do
     }.must_raise MultiProcessing::ProcessError
   end
 
-  it "returns nil and does not unlock when being unlocked in other processes" do
-    @mutex.lock
+  it "raise ProcessError and does not unlock when unlocking by other processes" do
     process = MultiProcessing::Process.new do
-      if @mutex.unlock == nil
-        exit 0
-      else
-        exit 1
-      end
+      @mutex.lock
+      sleep 0.2
+      @mutex.unlock
     end
+    sleep 0.1
+    proc{ @mutex.unlock }.must_raise MultiProcessing::ProcessError
     process.value.success?.must_equal true
-    @mutex.unlock.must_be_same_as @mutex
   end
 
   it "returns true when try_lock succeed" do
@@ -97,13 +95,19 @@ describe MultiProcessing::Mutex do
     @mutex.try_lock.must_equal false
   end
 
-  it "sleeps and restore lock status" do
-    @mutex.sleep(0)
-    @mutex.locked?.must_equal false
-    @mutex.lock
-    @mutex.sleep(0)
-    @mutex.locked?.must_equal true
+  it "s sleep method unlocks and sleeps and re-locks itself" do
+    process = MultiProcessing::Process.new do
+      @mutex.lock
+      @mutex.sleep(0.2)
+      sleep 0.2
+      @mutex.unlock
+    end
+    sleep 0.1
+    @mutex.try_lock.must_equal true
+    sleep 0.2
+    @mutex.try_lock.must_equal false
   end
+
 
 end
 
