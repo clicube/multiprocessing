@@ -4,7 +4,7 @@ ruby-multiprocessing
 ruby-multiprocessingはRubyにおいてプロセス間同期とプロセス間通信の機能を提供します（することを目指しています）．
 各クラスはRubyの標準添付ライブラリthreadで提供されているクラスのような動作をすることを目指しています．
 
-ruby-multiprocessing includes some classes for inter process synchronization and communication. 
+ruby-multiprocessing includes classes for inter-process synchronization and communication. 
 The classes can be used like ones in ruby standard library for thread.
 
 現状で使用できるクラスは以下の5つです．
@@ -107,25 +107,10 @@ Process
 
 とかできます．
 
-テストについて
-----------------
-
-minitest/specを使ってみました．
-でもテストの書き方がよくわかりません＞＜ 教えてください！！
-
-今のところ，Mutex, Queue, Processのテストを用意しました．
-
-shared以下について
-----------------
-
-shared semaphore を使用して作るつもりだった頃のものです．
-SemaphoreがC言語の拡張で書かれていて，他はRubyで書かれています．
-名前付きの同期オブジェクトを使うならshared semaphoreもよいのかもしれない．
-
 その他
 ----------------
 
-名前付きパイプなどが使えるようにしたら，fork以外でプロセスを増やしても使える気がするなあ・・・
+名前付きパイプを使うために，IO.named_pipeを作ってみました．
 
 ライセンス
 ----------------
