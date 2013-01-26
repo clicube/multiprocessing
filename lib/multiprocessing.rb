@@ -1,7 +1,7 @@
-require_relative 'multiprocessing/mutex'
-require_relative 'multiprocessing/conditionvariable'
-require_relative 'multiprocessing/semaphore'
-require_relative 'multiprocessing/queue'
-require_relative 'multiprocessing/process'
-require_relative 'multiprocessing/namedpipe'
+require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/mutex')
+require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/conditionvariable')
+require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/semaphore')
+require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/queue')
+require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/process')
+require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/namedpipe')
 

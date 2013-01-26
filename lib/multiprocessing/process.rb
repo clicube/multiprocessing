@@ -1,4 +1,4 @@
-require_relative 'processerror'
+require File.expand_path(File.dirname(__FILE__) + '/processerror')
 
 module MultiProcessing
   class Process

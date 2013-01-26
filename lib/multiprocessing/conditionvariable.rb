@@ -1,5 +1,5 @@
-require_relative 'processerror'
-require_relative 'mutex'
+require File.expand_path(File.dirname(__FILE__) + '/processerror')
+require File.expand_path(File.dirname(__FILE__) + '/mutex')
 
 module MultiProcessing
   class ConditionVariable

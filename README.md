@@ -115,7 +115,7 @@ Process
 ライセンス
 ----------------
 
-Author: clicube@github
+Author: clicube
 
 MIT License
 

@@ -1,6 +1,6 @@
 require 'thread'
-require_relative 'semaphore'
-require_relative 'mutex'
+require File.expand_path(File.dirname(__FILE__) + '/mutex')
+require File.expand_path(File.dirname(__FILE__) + '/semaphore')
 
 module MultiProcessing
 

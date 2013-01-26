@@ -1,5 +1,5 @@
-require_relative 'mutex'
-require_relative 'conditionvariable'
+require File.expand_path(File.dirname(__FILE__) + '/mutex')
+require File.expand_path(File.dirname(__FILE__) + '/conditionvariable')
 
 module MultiProcessing
   class Semaphore
