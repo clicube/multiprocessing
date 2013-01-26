@@ -1,12 +1,14 @@
 ruby-multiprocessing
 ====================
 
-ruby-multiprocessingはRubyでマルチプロセスなプログラムにおいて，
-プロセス間同期とプロセス間通信の機能を提供します（することを目指しています）．
+ruby-multiprocessingはRubyにおいてプロセス間同期とプロセス間通信の機能を提供します（することを目指しています）．
 各クラスはRubyの標準添付ライブラリthreadで提供されているクラスのような動作をすることを目指しています．
 
+ruby-multiprocessing includes some classes for inter process synchronization and communication. 
+The classes can be used like ones in ruby standard library for thread.
+
 現状で使用できるクラスは以下の5つです．
-各クラスはMultiProcessingクラスの下に作成されています．
+各クラスはMultiProcessingモジュールの下に作成されています．
 
 * Mutex
 * ConditionVariable
@@ -38,8 +40,6 @@ Mutex
 
 lockした後unlockする前にforkすると（synchronize中でforkした場合も）そのクリティカルセクションは並列に動作してしまうので注意してください．
 （forkしたときに子プロセスでは子スレッドが全て殺されるため，別のスレッドでforkすれば問題ないと思います．）
-
-lockした後unlcokする前にforkした場合unlockの返り値が，親プロセスではself，子プロセスではnilになります．
 
 ConditionVariable
 ----------------
@@ -83,8 +83,7 @@ Queueも標準threadライブラリのQueueと同様の使い方をします．
     end
     p q.pop
 
-プロセス間の通信にはパイプを使っています．Queue#pushをすると，パイプにデータを書き込むバックグラウンドスレッドが起動します．
-（pythonのmultiprocessingを参考にしました）
+プロセス間の通信にはパイプを使っています．Queue#pushをすると，パイプにデータを書き込むバックグラウンドスレッドが起動します（pythonのmultiprocessingを参考にしました）．
 プロセスが終了する際，バックグラウンドスレッドがパイプにデータを書き込み終わるまで待たないと，Queueが書き込みMutexをロックしたままになる場合があります．
 終了時は
 
@@ -99,7 +98,7 @@ Process
 
 標準のProcessモジュールは
 
- Process がプロセスを表現するクラスではなく、プロセスに対する操作 をまとめたモジュールであることに注意してください。
+>Process がプロセスを表現するクラスではなく、プロセスに対する操作 をまとめたモジュールであることに注意してください。
 
 とのことなので，プロセスを表現するっぽいクラスを作ってみました．
 

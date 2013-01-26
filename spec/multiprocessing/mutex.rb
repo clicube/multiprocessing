@@ -1,8 +1,8 @@
 require 'minitest/spec'
 require 'minitest/autorun'
 require 'timeout'
-require_relative '../mutex'
-require_relative '../process'
+require_relative '../../lib/multiprocessing/mutex'
+require_relative '../../lib/multiprocessing/process'
 
 describe MultiProcessing::Mutex do
 

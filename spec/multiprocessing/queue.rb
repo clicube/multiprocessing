@@ -1,8 +1,8 @@
 require 'minitest/spec'
 require 'minitest/autorun'
 require 'timeout'
-require_relative '../queue'
-require_relative '../process'
+require_relative '../../lib/multiprocessing/queue'
+require_relative '../../lib/multiprocessing/process'
 
 describe MultiProcessing::Queue do
 

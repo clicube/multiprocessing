@@ -1,6 +1,6 @@
 require 'minitest/spec'
 require 'minitest/autorun'
-require_relative '../process'
+require_relative '../../lib/multiprocessing/process'
 
 describe MultiProcessing::Process do
 

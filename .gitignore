@@ -20,3 +20,7 @@
 # Others
 Makefile
 *.log
+doc/
+*.gem
+.DS_Store
+
