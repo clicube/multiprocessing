@@ -1,28 +1,25 @@
-require 'minitest/spec'
-require 'minitest/autorun'
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper') 
 require 'timeout'
-require_relative '../../lib/multiprocessing/queue'
-require_relative '../../lib/multiprocessing/process'
 
 describe MultiProcessing::Queue do
 
   it "can be created" do
-    MultiProcessing::Queue.new.must_be_instance_of MultiProcessing::Queue
+    MultiProcessing::Queue.new.should be_instance_of MultiProcessing::Queue
   end
 
-  it "returns length of queue" do
+  it "#length returns its length" do
     queue = MultiProcessing::Queue.new
-    queue.length.must_equal 0
+    queue.length.should == 0
     queue.push :a
     sleep 0.1 # wait for enqueue
-    queue.length.must_equal 1
+    queue.length.should == 1
     queue.push :b
     sleep 0.1 # wait for enqueue
-    queue.length.must_equal 2
+    queue.length.should == 2
     queue.pop
-    queue.length.must_equal 1
+    queue.length.should == 1
     queue.pop
-    queue.length.must_equal 0
+    queue.length.should == 0
   end
 
   it "can pass object across processes" do
@@ -40,7 +37,7 @@ describe MultiProcessing::Queue do
         result << queue.pop
       end
     end
-    result.must_equal data_list
+    result.should == data_list
   end
 
   it "can pass large objects across processes" do
@@ -69,7 +66,7 @@ describe MultiProcessing::Queue do
       result = queue2.pop
     end
     process.kill :TERM
-    result.must_equal data
+    result.should == data
   end
 
   it "can pass as many as objects across processes" do
@@ -104,13 +101,13 @@ describe MultiProcessing::Queue do
       end
     end
     process.kill :TERM
-    result.must_equal data_list
+    result.should == data_list
   end
 
   it "can be closed and joined enqueue thread before enqueue" do
     queue = MultiProcessing::Queue.new
     thread = Thread.new { queue.close.join_thread }
-    thread.join.must_be :!=, nil
+    thread.join.should_not be_nil
   end
 
   it "can be closed and joined enqueue thread after enqueue" do
@@ -129,15 +126,14 @@ describe MultiProcessing::Queue do
       end
       queue.close.join_thread
     end
-    th.join(timeout_sec).must_be :!=, nil
+    th.join(timeout_sec).should_not be_nil
     process.kill(:TERM)
   end
 
   it "cannot be joined before being closed" do
     queue = MultiProcessing::Queue.new
-    proc{ queue.join_thread }.must_raise(MultiProcessing::QueueError)
+    proc{ queue.join_thread }.should raise_error MultiProcessing::QueueError
   end
-
 
 end
 

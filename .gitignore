@@ -1,26 +1,18 @@
-# Object files
-*.o
-
-# Libraries
-*.lib
-*.a
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-*.bundle
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Others
-Makefile
-*.log
-doc/
 *.gem
+*.rbc
+.bundle
+.config
+.yardoc
+Gemfile.lock
+InstalledFiles
+_yardoc
+coverage
+doc/
+lib/bundler/man
+pkg
+rdoc
+spec/reports
+test/tmp
+test/version_tmp
+tmp
 .DS_Store
-
