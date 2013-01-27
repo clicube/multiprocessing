@@ -112,6 +112,11 @@ Process
 
 名前付きパイプを使うために，IO.named_pipeを作ってみました．
 
+### 関係ありそうなライブラリ
+
+* https://github.com/pmahoney/process_shared
+
+
 ライセンス
 ----------------
 

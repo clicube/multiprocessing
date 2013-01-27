@@ -62,22 +62,18 @@ module MultiProcessing
     end
 
     def synchronize
+      lock
       begin
-        lock
         ret = yield
       ensure
-        unlock
+        unlock if locked?
       end
       return ret
     end
 
     def sleep timeout=nil
       unlock
-      if timeout != nil
-        ::Kernel.sleep timeout
-      else
-        ::Kernel.sleep
-      end
+      timeout ? Kernel.sleep(timeout) : Kernel.sleep
       lock
     end
   end

@@ -73,7 +73,7 @@ module MultiProcessing
     alias :shift :deq
 
     def enq obj
-      raise QueueError.new("Queue already closed") if @closed
+      raise QueueError.new("already closed") if @closed
       unless(@enq_thread && @enq_thread.alive?)
         @enq_queue.clear
         @enq_thread = Thread.new &method(:enq_loop)
