@@ -115,7 +115,7 @@ Process
 
 ### 関係ありそうなライブラリ
 
-* https://github.com/pmahoney/process\_shared
+* https://github.com/pmahoney/process_shared
 
 ### TODO
 
