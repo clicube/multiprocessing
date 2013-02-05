@@ -7,7 +7,7 @@ ruby-multiprocessingはRubyにおいてプロセス間同期とプロセス間�
 ruby-multiprocessing includes classes for inter-process synchronization and communication. 
 The classes can be used like ones in ruby standard library for thread.
 
-現状で使用できるクラスは以下の5つです．
+現状で使用できるクラスは以下です．
 各クラスはMultiProcessingモジュールの下に作成されています．
 
 * Mutex
@@ -15,6 +15,9 @@ The classes can be used like ones in ruby standard library for thread.
 * Semaphore
 * Queue
 * Process
+* ExternalObject
+
+また，IO.named\_pipe が追加されます
 
 いずれのクラスもプロセス間通信にパイプ（IO.pipe）を使用しています．
 また，複数のプロセスで1つの同期オブジェクトを共有するためにforkを使用する事を想定しているため，
@@ -110,12 +113,13 @@ Process
 その他
 ----------------
 
-名前付きパイプを使うために，IO.named_pipeを作ってみました．
-
 ### 関係ありそうなライブラリ
 
-* https://github.com/pmahoney/process_shared
+* https://github.com/pmahoney/process\_shared
 
+### TODO
+
+* ConditionVariable, ExternalObject, IO.named\_pipe のSpecを書く
 
 ライセンス
 ----------------

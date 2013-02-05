@@ -43,17 +43,23 @@ module MultiProcessing
         end
         @count_pout.readpartial 1
       end
+      return self
     end
     alias :lock :P
     alias :wait :P
 
-    def tryP
-      @mutex.synchronize do
-        @count_pout.read_nonblock 1
+    def try_P
+      begin
+        @mutex.synchronize do
+          @count_pout.read_nonblock 1
+        end
+        return true
+      rescue Errno::EAGAIN
+        return false
       end
     end
-    alias :trylock :tryP
-    alias :trywait :tryP
+    alias :try_lock :try_P
+    alias :try_wait :try_P
 
     def V
       @mutex.synchronize do
@@ -62,6 +68,7 @@ module MultiProcessing
         #@count_pin.flush
         @cond.signal
       end
+      return self
     end
     alias :signal :V
     alias :unlock :V
