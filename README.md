@@ -1,10 +1,10 @@
-ruby-multiprocessing
+MultiProcessing
 ====================
 
-ruby-multiprocessingはRubyにおいてプロセス間同期とプロセス間通信の機能を提供します（することを目指しています）．
+MultiProcessingはRubyにおいてプロセス間同期とプロセス間通信の機能を提供します（することを目指しています）．
 各クラスはRubyの標準添付ライブラリthreadで提供されているクラスのような動作をすることを目指しています．
 
-ruby-multiprocessing includes classes for inter-process synchronization and communication. 
+MultiProcessing includes classes for inter-process synchronization and communication. 
 The classes can be used like ones in ruby standard library for thread.
 
 現状で使用できるクラスは以下です．
