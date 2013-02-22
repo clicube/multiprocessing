@@ -262,5 +262,9 @@ describe MultiProcessing::Mutex do
     end
   end
 
+  describe "#sleep" do
+    it "unlocks, sleeps and re-locks"
+  end
+
 end
 
