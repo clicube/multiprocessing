@@ -38,7 +38,7 @@ module MultiProcessing
       @mutex.synchronize do
         @closed = true
         begin
-          kill :TERM, @pid
+          Process.kill :TERM, @pid
         rescue
         end
       end
