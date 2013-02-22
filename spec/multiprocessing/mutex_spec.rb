@@ -236,30 +236,72 @@ describe MultiProcessing::Mutex do
     end
   end
 
-  describe "#synchronoze" do
+  describe "#synchronize" do
 
-    it "is locked in processing block" do
-      @mutex.synchronize do
-        @mutex.should be_locked
+    context "synchronizing in current thread" do
+
+      it "returns a value returned by block" do
+        obj = Object.new
+        @mutex.synchronize {
+          obj
+        }.should === obj
       end
-    end
 
-    it "is locked in processing block in other process" do
-      fork do
-        @mutex.synchronize do
-          sleep 0.2
+      context "processing block" do
+        it "is locked" do
+          @mutex.synchronize do
+            @mutex.should be_locked
+          end
         end
       end
-      sleep 0.1
-      @mutex.should be_locked
+
+      context "after block" do
+        it "is unlocked" do
+          @mutex.synchronize{ :nop }
+          @mutex.should_not be_locked
+        end
+      end
+
+      context "raised in block" do
+        it "raised same error" do
+          proc{ @mutex.synchronize{ raise StandardError.new } }.should raise_error StandardError
+        end
+
+        it "is unlocked" do
+          begin
+            @mutex.synchronize{ raise StandardError.new }
+          rescue StandardError
+          end
+          @mutex.should_not be_locked
+        end
+      end 
     end
 
-    it "is unlocked after block" do
-      @mutex.synchronize do
-        :nop
+    context "synchronizing in other process" do
+
+      context "processing block" do
+        it "is locked" do
+          fork do
+            @mutex.synchronize do
+              sleep 0.2
+            end
+          end
+          sleep 0.1
+          @mutex.should be_locked
+        end
       end
-      @mutex.should_not be_locked
+
+      context "after block" do
+        it "is unlocked" do
+          fork do
+            @mutex.synchronize{ :nop }
+          end
+          @mutex.should_not be_locked
+        end
+      end
+
     end
+
   end
 
   describe "#sleep" do
