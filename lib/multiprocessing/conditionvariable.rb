@@ -21,19 +21,16 @@ module MultiProcessing
       begin
         @waiting_pout.read_nonblock 1
         @signal_pin.syswrite 1
-        #@signal_pin.write 1
-        #@signal_pin.flush
         return true
       rescue Errno::EAGAIN
-        return nil
+        return false
       end
     end
 
     def wait(mutex)
-      raise MultiProcessing::ProcessError.new("mutex must be instance of MultiProcessing::Mutex") if mutex.class != MultiProcessing::Mutex
+      raise TypeError.new("mutex must be instance of MultiProcessing::Mutex") if mutex.class != MultiProcessing::Mutex
+      raise ArgumentError.new("mutex must be locked") unless mutex.locked?
       @waiting_pin.syswrite 1
-      #@waiting_pin.write 1
-      #@waiting_pin.flush
       mutex.unlock
       @signal_pout.readpartial 1
       mutex.lock
