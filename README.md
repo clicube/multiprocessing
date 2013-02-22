@@ -14,7 +14,6 @@ The classes can be used like ones in ruby standard library for thread.
 * ConditionVariable
 * Semaphore
 * Queue
-* Process
 * ExternalObject
 
 また，IO.named\_pipe が追加されます
@@ -24,6 +23,11 @@ The classes can be used like ones in ruby standard library for thread.
 Unix系OSのみでのみ使用する事ができます．
 
 （Windowsするためには，名前付き共有セマフォなどの同期機能を使用する必要がありそうですね・・・）
+
+Install
+----------------
+
+    gem install multiprocessing
 
 Mutex
 ----------------
@@ -96,20 +100,6 @@ Queueも標準threadライブラリのQueueと同様の使い方をします．
 
 オブジェクトのシリアライズにMarshal.dumpを使用しているので，Marshal.dumpできないオブジェクトをpushできません．
 
-Process
-----------------
-
-標準のProcessモジュールは
-
->Process がプロセスを表現するクラスではなく、プロセスに対する操作 をまとめたモジュールであることに注意してください。
-
-とのことなので，プロセスを表現するっぽいクラスを作ってみました．
-
-    p = MultiProcessing::Process.new { # something to do }
-    p.join
-
-とかできます．
-
 その他
 ----------------
 
@@ -119,7 +109,8 @@ Process
 
 ### TODO
 
-* ConditionVariable, ExternalObject, IO.named\_pipe のSpecを書く
+* ExternalObject, IO.named\_pipe のSpecを書く
+* ドキュメントを書く
 
 ライセンス
 ----------------
