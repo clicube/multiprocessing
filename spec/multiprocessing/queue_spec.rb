@@ -46,7 +46,7 @@ describe MultiProcessing::Queue do
     data = "a" * 1024 * 1024 * 16 # 16MB
     timeout_sec = 10
     # process to echo queue1 -> queue 2
-    process = MultiProcessing::Process.new do
+    pid = fork do
       echo_queue = ::Queue.new
       Thread.new do
         loop do
@@ -65,7 +65,7 @@ describe MultiProcessing::Queue do
       queue1.push data
       result = queue2.pop
     end
-    process.kill :TERM
+    Process.kill :TERM,pid
     result.should == data
   end
 
@@ -75,7 +75,7 @@ describe MultiProcessing::Queue do
     data_list = Array.new(1000){|i| "a"*1000 }
     timeout_sec = 10
     # process to echo queue1 -> queue 2
-    process = MultiProcessing::Process.new do
+    pid = fork do
       echo_queue = ::Queue.new
       Thread.new do
         loop do
@@ -100,7 +100,7 @@ describe MultiProcessing::Queue do
         result << queue2.pop
       end
     end
-    process.kill :TERM
+    Process.kill :TERM,pid
     result.should == data_list
   end
 
@@ -114,7 +114,7 @@ describe MultiProcessing::Queue do
     queue = MultiProcessing::Queue.new
     data_list = Array.new(1000){|i| "a"*1000 }
     timeout_sec = 10
-    process = MultiProcessing::Process.new do
+    pid = fork do
       data_list.length.times do
         queue.pop
       end
@@ -127,7 +127,7 @@ describe MultiProcessing::Queue do
       queue.close.join_thread
     end
     th.join(timeout_sec).should_not be_nil
-    process.kill(:TERM)
+    Process.kill :TERM,pid
   end
 
   it "cannot be joined before being closed" do

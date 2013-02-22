@@ -1,6 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/mutex')
 require File.expand_path(File.dirname(__FILE__) + '/queue')
-require File.expand_path(File.dirname(__FILE__) + '/process')
 
 module MultiProcessing
   class ExternalObject < BasicObject
@@ -10,7 +9,7 @@ module MultiProcessing
       @result_queue = Queue.new
       @mutex = Mutex.new
       @closed = false
-      @process = Process.new(obj){|obj| process_loop obj }
+      @pid = fork{|obj| process_loop obj }
     end
 
     def process_loop obj
@@ -38,7 +37,10 @@ module MultiProcessing
     def close
       @mutex.synchronize do
         @closed = true
-        @process.kill :TERM
+        begin
+          kill :TERM, @pid
+        rescue
+        end
       end
     end
 

@@ -10,7 +10,11 @@ module MultiProcessing
     end
 
     def broadcast
-      while(signal); end
+      n = 0
+      while(signal)
+        n += 1
+      end
+      return n
     end
 
     def signal

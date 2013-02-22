@@ -32,7 +32,7 @@ describe MultiProcessing::Semaphore, "initialized with 1" do
   end
 
   it "#try_P returns false if failed" do
-    process = MultiProcessing::Process.new do
+    pid = fork do
       @semaphore.P
       sleep 0.2
     end
