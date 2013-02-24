@@ -94,8 +94,6 @@ module MultiProcessing
       raise ProcessError.new("Attempt to unlock a mutex which is not locked") if !locked?
       if @locking_pid == ::Process.pid && @locking_thread == Thread.current
         @pin.syswrite 1
-        #@pin.write 1
-        #@pin.flush
         @locking_pid = nil
         @locking_thread = nil
         return self
@@ -132,63 +130,6 @@ module MultiProcessing
       unlock
       timeout ? Kernel.sleep(timeout) : Kernel.sleep
       lock
-    end
-  end
-end
-
-if __FILE__ == $0
-
-  puts "use lock and unlock"
-  m = MultiProcessing::Mutex.new
-  puts "locking mutex in main process(pid:#{Process.pid})"
-  m.lock
-  puts "locked mutex in main process(pid:#{Process.pid})"
-  pid1 = fork do
-    puts "locking mutex in child process(pid:#{Process.pid})"
-    m.lock
-    puts "locked mutex in child process(pid:#{Process.pid})"
-    sleep 1
-    puts "unlocking mutex in child process(pid:#{Process.pid})"
-    m.unlock
-    puts "unlocked mutex in child process(pid:#{Process.pid})"
-    exit
-  end
-  pid2 = fork do
-    puts "locking mutex in child process(pid:#{Process.pid})"
-    m.lock
-    puts "locked mutex in child process(pid:#{Process.pid})"
-    sleep 1
-    puts "unlocking mutex in child process(pid:#{Process.pid})"
-    m.unlock
-    puts "unlocked mutex in child process(pid:#{Process.pid})"
-    exit
-  end
-
-  sleep 1
-  puts "unlocking mutex in main process(pid:#{Process.pid})"
-  m.unlock
-  puts "unlocked mutex in main process(pid:#{Process.pid})"
-  Process.waitall
-
-
-  puts ""
-  puts "use synchrnize"
-  m = MultiProcessing::Mutex.new
-  if pid = fork
-    puts "synchronizing in main process(pid:#{Process.pid})"
-    m.synchronize do
-      puts "something to do in main process(pid:#{Process.pid})"
-      sleep 2
-      puts "end something in main process(pid:#{Process.pid})"
-    end
-    Process.waitpid pid
-  else
-    sleep 1
-    puts "synchronizing in child process(pid:#{Process.pid})"
-    m.synchronize do
-      puts "something to do in child process(pid:#{Process.pid})"
-      sleep 1
-      puts "end something in child process(pid:#{Process.pid})"
     end
   end
 end
