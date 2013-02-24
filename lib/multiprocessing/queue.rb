@@ -4,6 +4,10 @@ require File.expand_path(File.dirname(__FILE__) + '/semaphore')
 
 module MultiProcessing
 
+  ##
+  #
+  # Raised when an invalid operation is attempted on a queue.
+  #
   class QueueError < StandardError; end
 
   ##
