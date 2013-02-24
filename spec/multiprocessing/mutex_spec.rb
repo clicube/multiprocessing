@@ -34,14 +34,14 @@ describe MultiProcessing::Mutex do
       before do
         Thread.new do
           @mutex.lock
-          sleep 0.3
+          sleep 0.03
           @mutex.unlock
         end
-        sleep 0.1
+        sleep 0.01
       end
 
       it "blocks" do
-        proc{ timeout(0.1){ @mutex.lock } }.should raise_error Timeout::Error
+        proc{ timeout(0.01){ @mutex.lock } }.should raise_error Timeout::Error
       end
 
     end
@@ -51,14 +51,14 @@ describe MultiProcessing::Mutex do
       before do
         fork do
           @mutex.lock
-          sleep 0.2
+          sleep 0.03
           @mutex.unlock
         end
-        sleep 0.1
+        sleep 0.01
       end
 
       it "blocks" do
-        proc{ timeout(0.1){ @mutex.lock } }.should raise_error Timeout::Error
+        proc{ timeout(0.01){ @mutex.lock } }.should raise_error Timeout::Error
       end
 
     end
@@ -84,13 +84,12 @@ describe MultiProcessing::Mutex do
             @mutex.lock
             @mutex.unlock
           end
-          sleep 0.1
+          sleep 0.01
         end
 
         it "makes the other blocked thread restart" do
           @mutex.unlock
-          sleep 0.1
-          @thread.should_not be_alive
+          @thread.join(0.01).should_not be_nil
         end
 
       end
@@ -103,13 +102,12 @@ describe MultiProcessing::Mutex do
             @mutex.unlock
           end
           @detached_thread = Process.detach(@pid)
-          sleep 0.1
+          sleep 0.01
         end
 
         it "makes the other blocked thread restart" do
           @mutex.unlock
-          sleep 0.1
-          @detached_thread.should_not be_alive
+          timeout(1){ @detached_thread.value }.should be_success
         end
 
         after do
@@ -129,10 +127,10 @@ describe MultiProcessing::Mutex do
       before do
         Thread.new do
           @mutex.lock
-          sleep 0.2
+          sleep 0.02
           @mutex.unlock
         end
-        sleep 0.1
+        sleep 0.01
       end
 
       it "raise ProcessError" do
@@ -152,12 +150,12 @@ describe MultiProcessing::Mutex do
     context "when locked in another process" do
 
       before do
-        fork do
+        @pid = fork do
           @mutex.lock
-          sleep 0.2
+          sleep 0.02
           @mutex.unlock
         end
-        sleep 0.1
+        sleep 0.01
       end
 
       it "raises ProcessError" do
@@ -194,7 +192,7 @@ describe MultiProcessing::Mutex do
     context "when locked" do
       it "returns true" do
         fork{ @mutex.lock }
-        sleep 0.1
+        sleep 0.01
         @mutex.locked?.should be_true
       end
     end
@@ -211,7 +209,7 @@ describe MultiProcessing::Mutex do
 
       it "gets locked" do
         fork{ @mutex.try_lock }
-        sleep 0.1
+        sleep 0.01
         @mutex.should be_locked
       end
 
@@ -222,9 +220,9 @@ describe MultiProcessing::Mutex do
       before do
         fork do
           @mutex.lock
-          sleep 0.2
+          sleep 0.02
         end
-        sleep 0.1
+        sleep 0.01
       end
 
       it "returns false" do
@@ -286,10 +284,10 @@ describe MultiProcessing::Mutex do
         it "is locked" do
           fork do
             @mutex.synchronize do
-              sleep 0.2
+              sleep 0.02
             end
           end
-          sleep 0.1
+          sleep 0.01
           @mutex.should be_locked
         end
       end
@@ -313,25 +311,24 @@ describe MultiProcessing::Mutex do
 
       before do
         @pid = fork do
-          sleep 0.2
+          sleep 0.02
           @mutex.lock
           @mutex.unlock
         end
         @detached_thread = Process.detach(@pid)
-        sleep 0.1
+        sleep 0.01
       end
 
       it "unlocks before sleep" do
         @mutex.synchronize do
-          @mutex.sleep 0.1
+          @mutex.sleep 0.01
         end
-        sleep 0.1
-        @detached_thread.should_not be_alive
+        timeout(1){ @detached_thread.value }.should be_success
       end
 
       it "re-locks after sleep" do
         @mutex.synchronize do
-          @mutex.sleep 0.1
+          @mutex.sleep 0.01
           @mutex.should be_locked
         end
       end
@@ -349,7 +346,7 @@ describe MultiProcessing::Mutex do
       it "re-locks" do
         @mutex.synchronize do
           begin
-            timeout(0.1){ @mutex.sleep }
+            timeout(0.01){ @mutex.sleep }
           rescue Timeout::Error
           end
           @mutex.should be_locked
