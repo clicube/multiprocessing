@@ -14,6 +14,14 @@ module MultiProcessing
   #
   # This class provides a way to synchronize communication between process.
   #
+  # Queue uses pipes to communicate with other processes.
+  # {Queue#push} starts background thread to write data to the pipe.
+  # Avoiding to exit process before writing to the pipe, use {#close} and {#join_thread}.
+  #
+  #   q.close.join_thread
+  #
+  # {#join_thread} waits until all data is written to the pipe.
+  #
   # Note that Queue uses 8 pipes ( 2 pipes, 2 Mutex, 1 Semaphore).
   #
   # @example
@@ -174,7 +182,7 @@ module MultiProcessing
 
     ##
     #
-    # Join the thread enqueueing.
+    # Waits until all data is written to the communication pipe.
     # This can call only after closing({#close}) queue.
     #
     # @return [Queue] self
