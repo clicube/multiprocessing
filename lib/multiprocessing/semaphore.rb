@@ -71,7 +71,7 @@ module MultiProcessing
     #
     # Attempts to get the resource and wait if it isn't available.
     #
-    # @return [Semaphore] itself
+    # @return [Semaphore] self
     #
     def P
       @mutex.synchronize do
@@ -109,7 +109,7 @@ module MultiProcessing
     #
     # Releases the resource.
     #
-    # @return [Semaphore] itself
+    # @return [Semaphore] self
     #
     def V
       @mutex.synchronize do

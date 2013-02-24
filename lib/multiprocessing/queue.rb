@@ -6,6 +6,24 @@ module MultiProcessing
 
   class QueueError < StandardError; end
 
+  ##
+  #
+  # This class provides a way to synchronize communication between process.
+  #
+  # Note that Queue uses 8 pipes ( 2 pipes, 2 Mutex, 1 Semaphore).
+  #
+  # @example
+  #   require 'multiprocessing'
+  #
+  #   q = MultiProcessing::Queue.new
+  #   fork do
+  #     q.push :nyan
+  #     q.push :wan
+  #     q.close.join_thread
+  #   end
+  #   q.pop # => :nyan
+  #   q.pop # => :wan
+  #
   class Queue
 
     def initialize
@@ -19,6 +37,12 @@ module MultiProcessing
       @closed = false
     end
 
+    ##
+    #
+    # Removes all objects from the queue
+    #
+    # @return [Queue] self
+    #
     def clear
       begin
         loop do
@@ -30,16 +54,37 @@ module MultiProcessing
       end
     end
 
+    ##
+    #
+    # Returns true if the queue is empty.
+    #
+    # @return [Boolean]
+    #
     def empty?
       length == 0
     end
 
+    ##
+    #
+    # Returns number of items in the queue.
+    #
+    # @return [Fixnum]
+    #
     def length
       return @count.value
     end
     alias :size :length
     alias :count :length
 
+    ##
+    #
+    # Retrieves data from the queue.
+    # If the queue is empty, the calling thread is suspended until data is pushed onto the queue.
+    # If non_block is true, thread isn't suspended, and exception is raised.
+    #
+    # @param [Boolean] non_block
+    # @return [Object]
+    #
     def deq non_block=false
       data = ""
       @read_mutex.synchronize do
@@ -72,6 +117,17 @@ module MultiProcessing
     alias :pop :deq
     alias :shift :deq
 
+    ##
+    #
+    # Pushes object to the queue.
+    # Raise QueueError if the queue is already closed.
+    # Raise TypeError if the object passed cannot be dumped with Marshal.
+    #
+    # @param [Object] obj
+    # @return [Queue] self
+    # @raise [QueueError] the queue is already closed.
+    # @raise [TypeError] object cannot be dumped with Marshal.
+    # 
     def enq obj
       raise QueueError.new("already closed") if @closed
       unless(@enq_thread && @enq_thread.alive?)
@@ -99,36 +155,35 @@ module MultiProcessing
     end
     private :enq_loop
 
+    ##
+    #
+    # Close the queue.
+    # After closing, the queue cannot be pushed any object.
+    # {#join_thread} can call only after closing the queue.
+    #
+    # @return [Queue] self
+    #
     def close
       @closed = true
       self
     end
 
+    ##
+    #
+    # Join the thread enqueueing.
+    # This can call only after closing({#close}) queue.
+    #
+    # @return [Queue] self
+    # @raise [QueueError] the queue is not closed.
+    # 
     def join_thread
       raise QueueError.new("must be closed before join_thread") unless @closed
       if @enq_thread && @enq_thread.alive?
         @enq_thread.join
       end
+      self
     end
 
   end
 end
 
-if __FILE__ == $0
-
-  q = MultiProcessing::Queue.new
-
-  q.push(0)
-  sleep 1
-  pid = fork
-  if !pid
-    q.push("111")
-    q.push({:a=>"a",:b=>123})
-    p q.pop
-    exit(0)
-  end
-  p q.pop
-  p q.pop
-  Process.waitall
-
-end

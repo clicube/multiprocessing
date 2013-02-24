@@ -41,7 +41,7 @@ module MultiProcessing
     # Attempts to grab the lock and waits if it isn't available.
     # Raises ProcessError if mutex was locked by the current thread.
     #
-    # @return [Mutex] itself
+    # @return [Mutex] self
     # @raise [ProcessError]
     #
     def lock
@@ -94,7 +94,7 @@ module MultiProcessing
     # Releases the lock.
     # Raises ProcessError if mutex wasn't locked by the current thread.
     #
-    # @return [Mutex] itself
+    # @return [Mutex] self
     # @raise [ProcessError]
     #
     def unlock
