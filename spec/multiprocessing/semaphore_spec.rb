@@ -21,13 +21,13 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
         fork do
           @semaphore.P
           @semaphore.P
-          sleep 0.3
+          sleep 0.03
         end
-        sleep 0.1
+        sleep 0.01
       end
 
       it "blocks" do
-        proc{ timeout(0.1){ @semaphore.P } }.should raise_error Timeout::Error
+        proc{ timeout(0.01){ @semaphore.P } }.should raise_error Timeout::Error
       end
 
     end
@@ -50,13 +50,12 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
           @semaphore.P # blocks
         end
         @detached_thread = Process.detach(@pid)
-        sleep 0.1
+        sleep 0.01
       end
 
       it "makes the other thread blocked restart" do
         @semaphore.V
-        sleep 0.1
-        @detached_thread.should_not be_alive
+        @detached_thread.join(1).should_not be_nil
       end
 
       after do
@@ -88,23 +87,23 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
 
       before do
         @pid = fork do
-          sleep 0.2
+          sleep 0.02
           @semaphore.P
-          sleep 0.2
+          sleep 0.02
           @semaphore.P
-          sleep 0.2
+          sleep 0.02
           @semaphore.V
         end
-        sleep 0.1
+        sleep 0.01
       end
 
       it "returns number of remaining resource" do
         @semaphore.count.should == 2
-        sleep 0.2
+        sleep 0.02
         @semaphore.count.should == 1
-        sleep 0.2
+        sleep 0.02
         @semaphore.count.should == 0
-        sleep 0.2
+        sleep 0.02
         @semaphore.count.should == 1
       end
 
@@ -133,9 +132,9 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
         pid = fork do
           @semaphore.P
           @semaphore.P
-          sleep 0.2
+          sleep 0.02
         end
-        sleep 0.1
+        sleep 0.01
         @semaphore.try_P.should be_false
         @semaphore.count.should == 0
       end

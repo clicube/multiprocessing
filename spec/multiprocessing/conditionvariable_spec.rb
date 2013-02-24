@@ -34,7 +34,7 @@ describe MultiProcessing::ConditionVariable do
         end
       end
       @detached_thread = Process.detach(@pid)
-      sleep 0.1
+      sleep 0.01
     end
 
     describe "#signal" do
@@ -90,7 +90,7 @@ describe MultiProcessing::ConditionVariable do
       end
       @detached_thread1 = Process.detach(@pid1)
       @detached_thread2 = Process.detach(@pid2)
-      sleep 0.1
+      sleep 0.01
     end
 
     describe "#signal" do
@@ -143,7 +143,7 @@ describe MultiProcessing::ConditionVariable do
       before do
         @mutex = MultiProcessing::Mutex.new
         @pid = fork do
-          sleep 0.2
+          sleep 0.02
           @cond.signal
         end
       end
@@ -151,7 +151,7 @@ describe MultiProcessing::ConditionVariable do
       context "until signal" do
         it "blocks" do
           @mutex.synchronize do
-            proc{timeout(0.1){@cond.wait(@mutex)}}.should raise_error Timeout::Error
+            proc{timeout(0.01){@cond.wait(@mutex)}}.should raise_error Timeout::Error
           end
         end
       end
@@ -159,7 +159,7 @@ describe MultiProcessing::ConditionVariable do
       context "after signal" do
         it "restarts" do
           @mutex.synchronize do
-            proc{timeout(0.3){@cond.wait(@mutex)}}.should_not raise_error Timeout::Error
+            proc{timeout(0.03){@cond.wait(@mutex)}}.should_not raise_error Timeout::Error
           end
         end
       end
