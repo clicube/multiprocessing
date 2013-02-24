@@ -7,8 +7,6 @@ module MultiProcessing
     def initialize count
       @count_pout, @count_pin = IO.pipe
       @count_pin.syswrite "1"*count
-      #@count_pin.write "1"*count
-      #@count_pin.flush
       @mutex = Mutex.new
       @cond = ConditionVariable.new
     end
@@ -22,8 +20,6 @@ module MultiProcessing
         end
       rescue Errno::EAGAIN
         @count_pin.syswrite "1"*n
-        #@count_pin.write "1"*n
-        #@count_pin.flush
       end
       return n
     end
@@ -64,8 +60,6 @@ module MultiProcessing
     def V
       @mutex.synchronize do
         @count_pin.syswrite 1
-        #@count_pin.write 1
-        #@count_pin.flush
         @cond.signal
       end
       return self
@@ -86,11 +80,3 @@ module MultiProcessing
   end
 end
 
-if $0 == __FILE__
-  s = MultiProcessing::Semaphore.new 1
-  fork
-  s.wait
-  puts Process.pid
-  sleep 1
-  s.post
-end
