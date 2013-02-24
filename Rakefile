@@ -8,7 +8,7 @@ require 'rspec/core/rake_task'
 
 RSpec::Core::RakeTask.new(:spec, :name) do |t,task_args|
   t.pattern = "spec/**/#{task_args[:name]}_spec.rb" if task_args[:name]
-  t.rspec_opts = "--options spec/spec.opts"
+  t.rspec_opts = "--color --order rand"
 end
 
 
