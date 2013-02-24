@@ -10,6 +10,8 @@ module MultiProcessing
   # Note that Semaphore uses 4 pipes( 1 pipe, 1 Mutex, 1 ConditionVariable).
   #
   # @example
+  #   require 'multiprocessing'
+  #   
   #   s = MultiProcessing::Semaphore.new 2
   #   3.times do
   #     fork do

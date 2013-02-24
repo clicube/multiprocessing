@@ -11,6 +11,8 @@ module MultiProcessing
   # Note that ConditionVariable uses 2 pipes.
   #
   # @example
+  #   require 'multiprocessing'
+  #   
   #   m = MultiProcessing::Mutex.new
   #   cond = MultiProcessing::ConditionVariable.new
   #   3.times do

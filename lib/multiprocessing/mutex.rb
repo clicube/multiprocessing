@@ -14,13 +14,20 @@ module MultiProcessing
   # Note that Mutex uses 1 pipe.
   #
   # @example
+  #   require 'multiprocessing'
+  #   
   #   mutex = MultiProcessing::Mutex.new
-  #   fork
-  #   mutex.synchronize do
-  #     # critical section
-  #     puts Process.pid
-  #     sleep 1
+  #   3.times do
+  #     fork do
+  #       mutex.synchronize do
+  #         # critical section
+  #         puts Process.pid
+  #         sleep 1
+  #       end
+  #     end
   #   end
+  #   Process.waitall
+  #   # => prints 3 pids of forked process in 1 sec interval
   # 
   class Mutex
 
