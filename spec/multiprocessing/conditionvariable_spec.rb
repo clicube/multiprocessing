@@ -25,7 +25,7 @@ describe MultiProcessing::ConditionVariable do
 
   context "being waited by one process" do
 
-    before(:each) do
+    before do
       @pid = fork do
         mutex = MultiProcessing::Mutex.new
         mutex.synchronize do
@@ -64,7 +64,7 @@ describe MultiProcessing::ConditionVariable do
 
     end
 
-    after(:each) do
+    after do
       begin
         Process.kill(:TERM, @pid)
       rescue Errno::ESRCH
@@ -75,7 +75,7 @@ describe MultiProcessing::ConditionVariable do
 
   context "being waited by multiple processes" do
 
-    before(:each) do
+    before do
       @pid1 = fork do
         mutex = MultiProcessing::Mutex.new
         mutex.synchronize do
@@ -124,7 +124,7 @@ describe MultiProcessing::ConditionVariable do
 
     end
 
-    after(:each) do
+    after do
       begin
         Process.kill(:TERM, @pid1)
       rescue Errno::ESRCH
