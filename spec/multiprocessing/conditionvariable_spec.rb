@@ -1,5 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'timeout'
+require 'thwait'
 
 describe MultiProcessing::ConditionVariable do
 
@@ -44,7 +45,6 @@ describe MultiProcessing::ConditionVariable do
 
       it "makes waiting process restart" do
         @cond.signal
-        sleep 0.1
         timeout(1){ @detached_thread.value }.success?.should be_true
       end
 
@@ -58,7 +58,6 @@ describe MultiProcessing::ConditionVariable do
 
       it "makes waiting process restart" do
         @cond.broadcast
-        sleep 0.1
         timeout(1){ @detached_thread.value }.success?.should be_true
       end
 
@@ -76,13 +75,13 @@ describe MultiProcessing::ConditionVariable do
   context "being waited by multiple processes" do
 
     before do
+      Process.waitall
       @pid1 = fork do
         mutex = MultiProcessing::Mutex.new
         mutex.synchronize do
           @cond.wait(mutex)
         end
       end
-      sleep 0.1
       @pid2 = fork do
         mutex = MultiProcessing::Mutex.new
         mutex.synchronize do
@@ -102,9 +101,10 @@ describe MultiProcessing::ConditionVariable do
 
       it "makes waiting process restart" do
         @cond.signal
-        sleep 0.1
-        timeout(1){ @detached_thread1.value }.success?.should be_true
-        @detached_thread2.should be_alive
+        threads = [@detached_thread1, @detached_thread2]
+        thwait = ThreadsWait.new(threads)
+        timeout(1){ thwait.next_wait.value }.success?.should be_true
+        thwait.threads[0].should be_alive
       end
 
     end
@@ -117,7 +117,6 @@ describe MultiProcessing::ConditionVariable do
 
       it "makes waiting process restart" do
         @cond.broadcast
-        sleep 0.1
         timeout(1){ @detached_thread1.value }.success?.should be_true
         timeout(1){ @detached_thread2.value }.success?.should be_true
       end
