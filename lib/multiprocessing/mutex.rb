@@ -94,6 +94,8 @@ module MultiProcessing
     # Releases the lock.
     # Raises ProcessError if mutex wasn't locked by the current thread.
     #
+    # @note An order of restarting thread is indefinite.
+    #
     # @return [Mutex] self
     # @raise [ProcessError]
     #

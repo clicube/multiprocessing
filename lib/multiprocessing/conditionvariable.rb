@@ -54,6 +54,8 @@ module MultiProcessing
     #
     # Wakes up one of threads waiting for this lock.
     #
+    # @note An order of waking up is indefinite.
+    #
     # @return [Boolean] Returns true if wakes up. Returns false if no threads were waiting.
     #
     def signal
