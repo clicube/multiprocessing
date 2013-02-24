@@ -2,8 +2,35 @@ require File.expand_path(File.dirname(__FILE__) + '/mutex')
 require File.expand_path(File.dirname(__FILE__) + '/conditionvariable')
 
 module MultiProcessing
+
+  ##
+  #
+  # Like Mutex but can manage multiple resources.
+  #
+  # Note that Semaphore uses 4 pipes( 1 pipe, 1 Mutex, 1 ConditionVariable).
+  #
+  # @example
+  #   s = MultiProcessing::Semaphore.new 2
+  #   3.times do
+  #     fork do
+  #       s.synchronize do
+  #         puts "pid: #{Process.pid}"
+  #         sleep 1
+  #       end
+  #     end
+  #   end
+  #   Process.waitall
+  #   # => 2 processes prints its pid immediately
+  #   #    but the other does late.
+  #
   class Semaphore
 
+    ##
+    #
+    # A new instance of Semaphore
+    #
+    # @param [Fixnum] count is initial number of resource
+    #
     def initialize count
       @count_pout, @count_pin = IO.pipe
       @count_pin.syswrite "1"*count
@@ -25,6 +52,12 @@ module MultiProcessing
     end
     private :count_nonsynchronize
 
+    ##
+    #
+    # Returns current number of resources.
+    #
+    # @return [Fixnum]
+    #
     def count
       @mutex.synchronize do
         count_nonsynchronize
@@ -32,6 +65,12 @@ module MultiProcessing
     end
     alias :value :count
 
+    ##
+    #
+    # Attempts to get the resource and wait if it isn't available.
+    #
+    # @return [Semaphore] itself
+    #
     def P
       @mutex.synchronize do
         while count_nonsynchronize == 0
@@ -44,6 +83,13 @@ module MultiProcessing
     alias :lock :P
     alias :wait :P
 
+    ##
+    #
+    # Attempts to get the resource and returns immediately
+    # Returns true if the resource granted.
+    #
+    # @return [Boolean]
+    #
     def try_P
       begin
         @mutex.synchronize do
@@ -57,6 +103,12 @@ module MultiProcessing
     alias :try_lock :try_P
     alias :try_wait :try_P
 
+    ##
+    #
+    # Releases the resource.
+    #
+    # @return [Semaphore] itself
+    #
     def V
       @mutex.synchronize do
         @count_pin.syswrite 1
@@ -68,13 +120,20 @@ module MultiProcessing
     alias :unlock :V
     alias :post :V
 
+    ##
+    #
+    # Obtains a resource, runs the block, and releases the resource when the block completes.
+    #
+    # @return [Object] returned value of the block
+    #
     def synchronize
       self.P
       begin
-        yield
+        ret = yield
       ensure
         self.V
       end
+      ret
     end
 
   end

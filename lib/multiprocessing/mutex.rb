@@ -87,7 +87,7 @@ module MultiProcessing
     # Releases the lock.
     # Raises ProcessError if mutex wasn't locked by the current thread.
     #
-    # @return [Boolean]
+    # @return [Mutex] itself
     # @raise [ProcessError]
     #
     def unlock
