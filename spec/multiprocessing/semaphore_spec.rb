@@ -55,7 +55,8 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
 
       it "makes the other thread blocked restart" do
         @semaphore.V
-        @detached_thread.join(0.1).should_not be_nil
+        sleep 0.1
+        @detached_thread.should_not be_alive
       end
 
       after do

@@ -89,7 +89,8 @@ describe MultiProcessing::Mutex do
 
         it "makes the other blocked thread restart" do
           @mutex.unlock
-          proc{ timeout(0.1){ @thread.join } }.should_not raise_error Timeout::Error
+          sleep 0.1
+          @thread.should_not be_alive
         end
 
       end
@@ -101,18 +102,20 @@ describe MultiProcessing::Mutex do
             @mutex.lock
             @mutex.unlock
           end
+          @detached_thread = Process.detach(@pid)
           sleep 0.1
         end
 
         it "makes the other blocked thread restart" do
           @mutex.unlock
-          proc{ timeout(0.1){ @thread.join } }.should_not raise_error Timeout::Error
+          sleep 0.1
+          @detached_thread.should_not be_alive
         end
 
         after do
           begin
             Process.kill :TERM, @pid
-          ensure Errno::ESRCH
+          rescue Errno::ESRCH
           end
         end
 
@@ -305,7 +308,55 @@ describe MultiProcessing::Mutex do
   end
 
   describe "#sleep" do
-    it "unlocks, sleeps and re-locks"
+
+    context "another thread waits the lock" do
+
+      before do
+        @pid = fork do
+          sleep 0.2
+          @mutex.lock
+          @mutex.unlock
+        end
+        @detached_thread = Process.detach(@pid)
+        sleep 0.1
+      end
+
+      it "unlocks before sleep" do
+        @mutex.synchronize do
+          @mutex.sleep 0.1
+        end
+        sleep 0.1
+        @detached_thread.should_not be_alive
+      end
+
+      it "re-locks after sleep" do
+        @mutex.synchronize do
+          @mutex.sleep 0.1
+          @mutex.should be_locked
+        end
+      end
+
+      after do
+        begin
+          Process.kill :TERM, @pid
+        rescue Errno::ESRCH
+        end
+      end
+
+    end
+
+    context "error occurs in sleep" do
+      it "re-locks" do
+        @mutex.synchronize do
+          begin
+            timeout(0.1){ @mutex.sleep }
+          rescue Timeout::Error
+          end
+          @mutex.should be_locked
+        end
+      end
+    end
+
   end
 
 end

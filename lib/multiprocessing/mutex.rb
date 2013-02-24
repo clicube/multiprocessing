@@ -135,8 +135,11 @@ module MultiProcessing
     #
     def sleep timeout=nil
       unlock
-      timeout ? Kernel.sleep(timeout) : Kernel.sleep
-      lock
+      begin
+        timeout ? Kernel.sleep(timeout) : Kernel.sleep
+      ensure
+        lock
+      end
     end
   end
 end

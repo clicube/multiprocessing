@@ -104,7 +104,7 @@ describe MultiProcessing::ConditionVariable do
         @cond.signal
         sleep 0.1
         timeout(1){ @detached_thread1.value }.success?.should be_true
-        @detached_thread2.join(0.1).should be_nil
+        @detached_thread2.should be_alive
       end
 
     end
