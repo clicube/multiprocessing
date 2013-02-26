@@ -84,8 +84,13 @@ module MultiProcessing
       raise ArgumentError.new("mutex must be locked") unless mutex.locked?
       @waiting_pin.syswrite 1
       mutex.unlock
-      @signal_pout.readpartial 1
-      mutex.lock
+      begin
+        buf = nil
+        buf = @signal_pout.readpartial 1
+      ensure
+        @waiting_pout.readpartial 1 unless buf
+        mutex.lock
+      end
       self
     end
 

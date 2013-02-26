@@ -178,6 +178,47 @@ describe MultiProcessing::Mutex do
       end
     end
 
+    context "forked on locking" do
+
+      context "forked process calls #unlock before forking process calls it" do
+        it "raises ProcessError at unlocking on forked process" do
+          @mutex.lock
+          pid = fork do
+            begin
+              @mutex.unlock
+            rescue MultiProcessing::ProcessError
+              exit! true # OK
+            end
+            exit! false # NG
+          end
+          sleep 0.01
+          @mutex.should be_locked
+          @mutex.unlock
+          timeout(1){ Process.detach(pid).value }.should be_success
+          @mutex.should_not be_locked
+        end
+      end
+
+      context "forking process calls #unlock before forked process calls it" do
+        it "raises ProcessError at unlocking on forked process" do
+          @mutex.lock
+          pid = fork do
+            begin
+              sleep 0.01
+              @mutex.unlock
+            rescue MultiProcessing::ProcessError
+              exit! true # OK
+            end
+            exit! false # NG
+          end
+          @mutex.unlock
+          timeout(1){ Process.detach(pid).value }.should be_success
+          @mutex.should_not be_locked
+        end
+      end
+
+    end
+
   end
 
 
@@ -297,6 +338,54 @@ describe MultiProcessing::Mutex do
           fork do
             @mutex.synchronize{ :nop }
           end
+          @mutex.should_not be_locked
+        end
+      end
+
+    end
+
+    context "forked on locking" do
+
+      context "forked process exits synchronize block before forking process" do
+        it "raises ProcessError at unlocking on forked process" do
+          pid = nil
+          begin
+            @mutex.synchronize do
+              pid = fork
+              sleep 0.01 if pid # for forked process exiting sychronize block before forking process 
+            end
+          rescue MultiProcessing::ProcessError
+            if !pid
+              exit! true # OK
+            end
+          end
+          if !pid
+            exit! false # NG
+          end
+          @mutex.should_not be_locked
+          timeout(1){ Process.detach(pid).value }.should be_success
+          @mutex.should_not be_locked
+        end
+      end
+
+      context "forking process exits synchronize block before forked process" do
+        it "raises ProcessError at unlocking on forked process" do
+          pid = nil
+          begin
+            @mutex.synchronize do
+              pid = fork
+              sleep 0.01 if !pid # for forking process exiting sychronize block before forked process 
+            end
+          rescue MultiProcessing::ProcessError
+            if !pid
+              exit! true # OK
+            end
+          end
+          if !pid
+            exit! false # NG
+          end
+          @mutex.should_not be_locked
+          timeout(1){ Process.detach(pid).value }.should be_success
           @mutex.should_not be_locked
         end
       end

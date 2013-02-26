@@ -150,9 +150,9 @@ describe MultiProcessing::ConditionVariable do
 
       context "until signal" do
         it "blocks" do
-          @mutex.synchronize do
-            proc{timeout(0.01){@cond.wait(@mutex)}}.should raise_error Timeout::Error
-          end
+            @mutex.synchronize do
+          proc{timeout(0.01){@cond.wait(@mutex)}}.should raise_error Timeout::Error
+            end
         end
       end
 
@@ -195,7 +195,7 @@ describe MultiProcessing::ConditionVariable do
         @cond.signal.should be_false
         # this means that inner variables are in the state that no process are waiting it
       end
-      
+
     end
 
   end

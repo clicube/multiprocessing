@@ -45,13 +45,10 @@ module MultiProcessing
     # @raise [ProcessError]
     #
     def lock
-      unless @locking_pid == ::Process.pid && @locking_thread == Thread.current
-        @pout.readpartial 1
-        @locking_pid = ::Process.pid
-        @locking_thread = Thread.current
-      else
-        raise ProcessError.new "mutex was tried locking twice"
-      end
+      raise ProcessError.new "mutex was tried locking twice" if owned?
+      @pout.readpartial 1
+      @locking_pid = ::Process.pid
+      @locking_thread = Thread.current
       self
     end
 
@@ -91,6 +88,16 @@ module MultiProcessing
 
     ##
     #
+    # Returns true if the lock is locked by current thread on current process
+    #
+    # @return [Boolean]
+    #
+    def owned?
+      @locking_pid == ::Process.pid && @locking_thread == Thread.current
+    end
+
+    ##
+    #
     # Releases the lock.
     # Raises ProcessError if mutex wasn't locked by the current thread.
     #
@@ -101,14 +108,11 @@ module MultiProcessing
     #
     def unlock
       raise ProcessError.new("Attempt to unlock a mutex which is not locked") if !locked?
-      if @locking_pid == ::Process.pid && @locking_thread == Thread.current
-        @pin.syswrite 1
-        @locking_pid = nil
-        @locking_thread = nil
-        return self
-      else
-        raise ProcessError.new("mutex was tried unlocking in process/thread which didn't lock this mutex #{@locking_pid} #{::Process.pid}")
-      end
+      raise ProcessError.new("Mutex was tried being unlocked in process/thread which didn't lock this mutex #{@locking_pid} #{::Process.pid}") unless owned?
+      @pin.syswrite 1
+      @locking_pid = nil
+      @locking_thread = nil
+      self
     end
 
     ##
@@ -122,7 +126,7 @@ module MultiProcessing
       begin
         ret = yield
       ensure
-        unlock if locked?
+        unlock #if locked?
       end
       return ret
     end
