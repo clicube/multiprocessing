@@ -65,6 +65,61 @@ describe MultiProcessing::Mutex do
 
   end
 
+  describe "#owned?" do
+
+    context "initial state" do
+      it "returns false" do
+        @mutex.should_not be_owned
+      end
+    end
+
+    context "during locked by current thread" do
+      it "returns true" do
+        @mutex.lock
+        @mutex.should be_owned
+        @mutex.unlock
+        @mutex.synchronize do
+          @mutex.should be_owned
+        end
+      end
+    end
+    
+    context "during locked by another process" do
+
+      before do
+        fork do
+          @mutex.synchronize do
+            sleep 0.02
+          end
+        end
+        sleep 0.01
+      end
+
+      it "returns false" do
+        @mutex.should_not be_owned
+      end
+
+    end
+
+    context "after unlocked" do
+
+      before do
+        fork do
+          @mutex.synchronize do
+            sleep 0.01
+          end
+        end
+        sleep 0.02
+      end
+
+      it "returns false" do
+        @mutex.should_not be_owned
+      end
+
+    end
+
+  end
+
   describe "#unlock" do
 
     context "when locked in same thread" do
