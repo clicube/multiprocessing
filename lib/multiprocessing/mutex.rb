@@ -126,7 +126,7 @@ module MultiProcessing
       begin
         ret = yield
       ensure
-        unlock #if locked?
+        unlock
       end
       return ret
     end
