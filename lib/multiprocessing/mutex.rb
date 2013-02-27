@@ -48,7 +48,7 @@ module MultiProcessing
       MultiProcessing.try_handle_interrupt(RuntimeError => :on_blocking) do
         raise ProcessError.new "mutex was tried locking twice" if owned?
         @pout.readpartial 1
-        @locking_pid = ::Process.pid
+        @locking_pid = Process.pid
         @locking_thread = Thread.current
         self
       end
@@ -65,9 +65,9 @@ module MultiProcessing
         begin
           @pout.read_nonblock 1
           @pin.syswrite 1
-          return false
+          false
         rescue Errno::EAGAIN => e
-          return true
+          true
         end
       end
     end
@@ -84,7 +84,7 @@ module MultiProcessing
         begin
           @pout.read_nonblock 1
           @locking_thread = Thread.current
-          @locking_pid = ::Process.pid
+          @locking_pid = Process.pid
           return true
         rescue Errno::EAGAIN
           return false
@@ -99,7 +99,7 @@ module MultiProcessing
     # @return [Boolean]
     #
     def owned?
-      @locking_pid == ::Process.pid && @locking_thread == Thread.current
+      @locking_pid == Process.pid && @locking_thread == Thread.current
     end
 
     ##
@@ -114,11 +114,11 @@ module MultiProcessing
     #
     def unlock
       MultiProcessing.try_handle_interrupt(RuntimeError => :never) do
-        raise ProcessError.new("Attempt to unlock a mutex which is not locked") if !locked?
-        raise ProcessError.new("Mutex was tried being unlocked in process/thread which didn't lock this mutex #{@locking_pid} #{::Process.pid}") unless owned?
-        @pin.syswrite 1
+        raise ProcessError.new("Attempt to unlock a mutex which is not locked") unless locked?
+        raise ProcessError.new("Mutex was tried being unlocked in process/thread which didn't lock this mutex: locking[pid:#{(@locking_pid||'nil')}, thread:#{@locking_thread.inspect}] current[pid:#{Process.pid}, thread:#{Thread.current.inspect}]") unless owned?
         @locking_pid = nil
         @locking_thread = nil
+        @pin.syswrite 1
         self
       end
     end
