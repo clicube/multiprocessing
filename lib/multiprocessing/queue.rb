@@ -58,11 +58,9 @@ module MultiProcessing
     def clear
       begin
         loop do
-          @read_mutex.synchronize do
-            self.deq(true)
-          end
+          self.deq(true)
         end
-      rescue Errno::EAGAIN
+      rescue QueueError
       end
       self
     end
@@ -104,7 +102,9 @@ module MultiProcessing
         unless non_block
           @count.wait
         else
-          @count.trywait
+          unless @count.try_wait
+            raise QueueError.new("Queue is empty")
+          end
         end
 
         buf = ""
@@ -148,7 +148,7 @@ module MultiProcessing
         @enq_thread = Thread.new &method(:enq_loop)
       end
       @enq_queue.enq(Marshal.dump(obj))
-      Thread.pass
+      @count.post
       self
     end
     alias :push :enq
@@ -158,7 +158,6 @@ module MultiProcessing
       loop do
         data = @enq_queue.deq
         @write_mutex.synchronize do
-          @count.post
           @len_pin.write data.length.to_s + "\n"
           @len_pin.flush
           @data_pin.write data

@@ -46,6 +46,57 @@ describe MultiProcessing::Queue do
       end
     end
 
+    context "enqueued from another process" do
+      it "returns correct object" do
+        pid = fork do
+          @data_set.each do |data|
+            @queue.enq data
+          end
+          sleep 1
+        end
+
+        ret = []
+        @data_set.length.times do
+          ret << @queue.deq
+        end
+        ret.should == @data_set
+
+        begin
+          Process.kill :TERM, pid
+        rescue Errno::ESRCH
+        end
+      end
+    end
+
+    context "nob-block mode" do
+
+      context "the queue holds no item" do
+        it "raises QueueError" do
+          proc{ @queue.deq(true) }.should raise_error MultiProcessing::QueueError
+        end
+      end
+
+      context "the queue holds items" do
+        it "returns correct object" do
+          pid = fork do
+            @queue.enq :data
+            sleep 1
+          end
+          sleep 0.01
+
+          ret = @queue.deq(true)
+          ret.should == :data
+
+          begin
+            Process.kill :TERM, pid
+          rescue Errno::ESRCH
+          end
+        end
+      end
+
+    end
+
+
   end
 
   describe "#close" do
@@ -84,6 +135,59 @@ describe MultiProcessing::Queue do
 
       end
     end
+  end
+
+  describe "#length" do
+    it "returns a number of items" do
+      @queue.length.should == 0
+      @queue.enq :a
+      @queue.length.should == 1
+      @queue.enq :a
+      @queue.length.should == 2
+      @queue.deq
+      @queue.length.should == 1
+      @queue.deq
+      @queue.length.should == 0
+    end
+  end
+
+  describe "#empty?" do
+
+    context "the queue holds no item" do
+      it "returns true" do
+        @queue.should be_empty
+      end
+    end
+
+    context "the queue has item(s)" do
+      it "returns false" do
+        @queue.enq :a
+        @queue.should_not be_empty
+      end
+    end
+
+  end
+
+  describe "#clear" do
+
+    context "the queue holds no item" do
+      it "do nothing and returns itself" do
+        ret = @queue.clear
+        @queue.length.should == 0
+        ret.should === @queue
+      end
+    end
+
+    context "the queue holds items" do
+      it "clears its items and returns itself" do
+        @queue.enq :a
+        @queue.enq :a
+        ret = @queue.clear
+        @queue.length.should == 0
+        ret.should === @queue
+      end
+    end
+
   end
 
   context "heavy load given" do
