@@ -45,11 +45,13 @@ module MultiProcessing
     # @raise [ProcessError]
     #
     def lock
-      raise ProcessError.new "mutex was tried locking twice" if owned?
-      @pout.readpartial 1
-      @locking_pid = ::Process.pid
-      @locking_thread = Thread.current
-      self
+      MultiProcessing.try_handle_interrupt(RuntimeError => :on_blocking) do
+        raise ProcessError.new "mutex was tried locking twice" if owned?
+        @pout.readpartial 1
+        @locking_pid = ::Process.pid
+        @locking_thread = Thread.current
+        self
+      end
     end
 
     ##
@@ -59,12 +61,14 @@ module MultiProcessing
     # @return [Boolean]
     #
     def locked?
-      begin
-        @pout.read_nonblock 1
-        @pin.syswrite 1
-        return false
-      rescue Errno::EAGAIN => e
-        return true
+      MultiProcessing.try_handle_interrupt(RuntimeError => :never) do
+        begin
+          @pout.read_nonblock 1
+          @pin.syswrite 1
+          return false
+        rescue Errno::EAGAIN => e
+          return true
+        end
       end
     end
 
@@ -76,13 +80,15 @@ module MultiProcessing
     # @return [Boolean]
     #
     def try_lock
-      begin
-        @pout.read_nonblock 1
-        @locking_thread = Thread.current
-        @locking_pid = ::Process.pid
-        return true
-      rescue Errno::EAGAIN
-        return false
+      MultiProcessing.try_handle_interrupt(RuntimeError => :never) do
+        begin
+          @pout.read_nonblock 1
+          @locking_thread = Thread.current
+          @locking_pid = ::Process.pid
+          return true
+        rescue Errno::EAGAIN
+          return false
+        end
       end
     end
 
@@ -107,12 +113,14 @@ module MultiProcessing
     # @raise [ProcessError]
     #
     def unlock
-      raise ProcessError.new("Attempt to unlock a mutex which is not locked") if !locked?
-      raise ProcessError.new("Mutex was tried being unlocked in process/thread which didn't lock this mutex #{@locking_pid} #{::Process.pid}") unless owned?
-      @pin.syswrite 1
-      @locking_pid = nil
-      @locking_thread = nil
-      self
+      MultiProcessing.try_handle_interrupt(RuntimeError => :never) do
+        raise ProcessError.new("Attempt to unlock a mutex which is not locked") if !locked?
+        raise ProcessError.new("Mutex was tried being unlocked in process/thread which didn't lock this mutex #{@locking_pid} #{::Process.pid}") unless owned?
+        @pin.syswrite 1
+        @locking_pid = nil
+        @locking_thread = nil
+        self
+      end
     end
 
     ##
@@ -122,13 +130,18 @@ module MultiProcessing
     # @return [Object] returned value of block
     #
     def synchronize
-      lock
-      begin
-        ret = yield
-      ensure
-        unlock
+      MultiProcessing.try_handle_interrupt(RuntimeError => :on_blocking) do
+        lock
+        ret = nil
+        begin
+          MultiProcessing.try_handle_interrupt(RuntimeError => :immediate) do
+            ret = yield
+          end
+        ensure
+          unlock
+        end
+        ret
       end
-      return ret
     end
 
     ##
@@ -140,13 +153,16 @@ module MultiProcessing
     # @raise [ProcessError]
     #
     def sleep timeout=nil
-      unlock
-      begin
-        timeout ? Kernel.sleep(timeout) : Kernel.sleep
-      ensure
-        lock
+      MultiProcessing.try_handle_interrupt(RuntimeError => :on_blocking) do
+        unlock
+        begin
+          timeout ? Kernel.sleep(timeout) : Kernel.sleep
+        ensure
+          lock
+        end
       end
     end
+
   end
 end
 
