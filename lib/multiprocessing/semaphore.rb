@@ -41,16 +41,18 @@ module MultiProcessing
     end
 
     def count_nonsynchronize
-      n = 0
-      begin
-        loop do
-          @count_pout.read_nonblock 1
-          n += 1
+      MultiProcessing.try_handle_interrupt(RuntimeError => :never) do
+        n = 0
+        begin
+          loop do
+            @count_pout.read_nonblock 1
+            n += 1
+          end
+        rescue Errno::EAGAIN
+          @count_pin.syswrite "1"*n
         end
-      rescue Errno::EAGAIN
-        @count_pin.syswrite "1"*n
+        n
       end
-      return n
     end
     private :count_nonsynchronize
 
@@ -112,11 +114,13 @@ module MultiProcessing
     # @return [Semaphore] self
     #
     def V
-      @mutex.synchronize do
-        @count_pin.syswrite 1
-        @cond.signal
+      MultiProcessing.try_handle_interrupt(RuntimeError => :never) do
+        @mutex.synchronize do
+          @count_pin.syswrite 1
+          @cond.signal
+        end
+        self
       end
-      return self
     end
     alias :signal :V
     alias :unlock :V
