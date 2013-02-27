@@ -64,6 +64,7 @@ module MultiProcessing
         end
       rescue Errno::EAGAIN
       end
+      self
     end
 
     ##
@@ -83,7 +84,7 @@ module MultiProcessing
     # @return [Fixnum]
     #
     def length
-      return @count.value
+      @count.value
     end
     alias :size :length
     alias :count :length
@@ -148,9 +149,10 @@ module MultiProcessing
       end
       @enq_queue.enq(Marshal.dump(obj))
       Thread.pass
+      self
     end
     alias :push :enq
-    alias :unshift :enq
+    alias :<< :enq
 
     def enq_loop
       loop do
