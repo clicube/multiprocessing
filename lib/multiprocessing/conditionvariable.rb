@@ -59,12 +59,14 @@ module MultiProcessing
     # @return [Boolean] Returns true if wakes up. Returns false if no threads were waiting.
     #
     def signal
-      begin
-        @waiting_pout.read_nonblock 1
-        @signal_pin.syswrite 1
-        return true
-      rescue Errno::EAGAIN
-        return false
+      MultiProcessing.try_handle_interrupt(RuntimeError => :never) do
+        begin
+          @waiting_pout.read_nonblock 1
+          @signal_pin.syswrite 1
+          return true
+        rescue Errno::EAGAIN
+          return false
+        end
       end
     end
 
@@ -80,18 +82,23 @@ module MultiProcessing
     # @raise [ArgumentError]
     #
     def wait(mutex)
-      raise TypeError.new("mutex must be instance of MultiProcessing::Mutex") if mutex.class != MultiProcessing::Mutex
-      raise ArgumentError.new("mutex must be locked") unless mutex.locked?
-      @waiting_pin.syswrite 1
-      mutex.unlock
-      begin
-        buf = nil
-        buf = @signal_pout.readpartial 1
-      ensure
-        @waiting_pout.readpartial 1 unless buf
-        mutex.lock
+      MultiProcessing.try_handle_interrupt(RuntimeError => :never) do
+        raise TypeError.new("mutex must be instance of MultiProcessing::Mutex") if mutex.class != MultiProcessing::Mutex
+        raise ArgumentError.new("mutex must be locked") unless mutex.locked?
+        @waiting_pin.syswrite 1
+        mutex.unlock
+        begin
+          MultiProcessing.try_handle_interrupt(RuntimeError => :on_blocking) do
+            @signal_pout.readpartial 1
+          end
+        rescue Exception => e
+          @waiting_pout.readpartial 1
+          raise e
+        ensure
+          mutex.lock
+        end
+        self
       end
-      self
     end
 
   end
