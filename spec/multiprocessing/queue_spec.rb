@@ -82,7 +82,7 @@ describe MultiProcessing::Queue do
             @queue.enq :data
             sleep 1
           end
-          sleep 0.01
+          sleep 0.05
 
           ret = @queue.deq(true)
           ret.should == :data

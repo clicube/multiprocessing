@@ -34,8 +34,6 @@ describe MultiProcessing::Mutex do
       before do
         Thread.new do
           @mutex.lock
-          sleep 0.03
-          @mutex.unlock
         end
         sleep 0.01
       end
@@ -393,6 +391,7 @@ describe MultiProcessing::Mutex do
           fork do
             @mutex.synchronize{ :nop }
           end
+          sleep 0.01
           @mutex.should_not be_locked
         end
       end

@@ -132,9 +132,8 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
         pid = fork do
           @semaphore.P
           @semaphore.P
-          sleep 0.02
         end
-        sleep 0.01
+        sleep 0.03
         @semaphore.try_P.should be_false
         @semaphore.count.should == 0
       end
