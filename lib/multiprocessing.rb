@@ -5,6 +5,19 @@ require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/queue')
 require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/namedpipe')
 require File.expand_path(File.dirname(__FILE__) + '/multiprocessing/externalobject')
 
+##
+#
+# MultiProcessing provides classes for
+# inter-process synchronization and communication in Ruby.
+#
+# These classes can be used like ones in Ruby standard library for multi threading.
+#
+# To realize communitation across processes, MultiProcessing uses pipe (IO.pipe).
+# You have to use fork to create multiple processes 
+# which accesses synchronizing/communication object.
+# For this reason, MultiProcessing can be used only on Unix or Linux.
+#
+#
 module MultiProcessing
 
   # documentation is at below
