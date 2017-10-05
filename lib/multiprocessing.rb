@@ -23,7 +23,7 @@ module MultiProcessing
   # documentation is at below
   if Thread.respond_to?(:handle_interrupt)
     def try_handle_interrupt *args, &block
-      Thread.handle_interrupt *args, &block
+      Thread.handle_interrupt(*args, &block)
     end
   else
     def try_handle_interrupt *args

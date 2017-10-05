@@ -145,7 +145,7 @@ module MultiProcessing
       raise QueueError.new("already closed") if @closed
       unless(@enq_thread && @enq_thread.alive?)
         @enq_queue.clear
-        @enq_thread = Thread.new &method(:enq_loop)
+        @enq_thread = Thread.new(&method(:enq_loop))
       end
       @enq_queue.enq(Marshal.dump(obj))
       @count.post

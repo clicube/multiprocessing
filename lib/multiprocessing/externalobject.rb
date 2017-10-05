@@ -9,7 +9,7 @@ module MultiProcessing
       @result_queue = Queue.new
       @mutex = Mutex.new
       @closed = false
-      @pid = fork{|obj| process_loop obj }
+      @pid = fork{|o| process_loop o }
     end
 
     def process_loop obj
@@ -17,7 +17,7 @@ module MultiProcessing
         *args = @call_queue.deq
         result = nil
         begin
-          result = obj.__send__ *args
+          result = obj.__send__(*args)
         rescue => e
           result = e
         end
@@ -45,7 +45,7 @@ module MultiProcessing
     end
 
     def method_missing *args
-      self.send *args
+      self.send(*args)
     end
 
   end

@@ -66,7 +66,7 @@ module MultiProcessing
           @pout.read_nonblock 1
           @pin.syswrite 1
           false
-        rescue Errno::EAGAIN => e
+        rescue Errno::EAGAIN
           true
         end
       end
