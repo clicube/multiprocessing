@@ -11,6 +11,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Classes for inter-process synchronization/communication like thread library in ruby standard library}
   gem.summary       = %q{Inter-process synchronization/communication}
   gem.homepage      = "https://github.com/clicube/multiprocessing"
+  gem.license       = "MIT"
 
 
   gem.files         = `git ls-files`.split($/)
