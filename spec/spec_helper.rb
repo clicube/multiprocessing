@@ -15,6 +15,7 @@ end
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rspec'
+require 'timeout'
 require 'multiprocessing'
 
 # Requires supporting files with custom matchers and macros, etc,
@@ -22,5 +23,9 @@ require 'multiprocessing'
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
 RSpec.configure do |config|
-
+  config.around(:each) do |example|
+    Timeout::timeout(10) {
+      example.run
+    }
+  end
 end

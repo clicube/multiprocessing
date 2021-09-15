@@ -12,7 +12,7 @@ describe MultiProcessing::ConditionVariable do
 
     describe "#signal" do
       it "returns false" do
-        @cond.signal.should be_false
+        @cond.signal.should be false
       end
     end
 
@@ -40,12 +40,12 @@ describe MultiProcessing::ConditionVariable do
     describe "#signal" do
 
       it "returns true" do
-        @cond.signal.should be_true
+        @cond.signal.should be true
       end
 
       it "makes waiting process restart" do
         @cond.signal
-        timeout(1){ @detached_thread.value }.success?.should be_true
+        Timeout.timeout(1){ @detached_thread.value }.success?.should be true
       end
 
     end
@@ -58,16 +58,17 @@ describe MultiProcessing::ConditionVariable do
 
       it "makes waiting process restart" do
         @cond.broadcast
-        timeout(1){ @detached_thread.value }.success?.should be_true
+        Timeout.timeout(1){ @detached_thread.value }.success?.should be true
       end
 
     end
 
     after do
       begin
-        Process.kill(:TERM, @pid)
+        Process.kill(:KILL, @pid)
       rescue Errno::ESRCH
       end
+      Process.waitall
     end
 
   end
@@ -75,7 +76,6 @@ describe MultiProcessing::ConditionVariable do
   context "being waited by multiple processes" do
 
     before do
-      Process.waitall
       @pid1 = fork do
         mutex = MultiProcessing::Mutex.new
         mutex.synchronize do
@@ -96,14 +96,14 @@ describe MultiProcessing::ConditionVariable do
     describe "#signal" do
 
       it "returns true" do
-        @cond.signal.should be_true
+        @cond.signal.should be true
       end
 
       it "makes waiting process restart" do
         @cond.signal
         threads = [@detached_thread1, @detached_thread2]
         thwait = ThreadsWait.new(threads)
-        timeout(1){ thwait.next_wait.value }.success?.should be_true
+        Timeout.timeout(1){ thwait.next_wait.value }.success?.should be true
         thwait.threads[0].should be_alive
       end
 
@@ -117,21 +117,22 @@ describe MultiProcessing::ConditionVariable do
 
       it "makes waiting process restart" do
         @cond.broadcast
-        timeout(1){ @detached_thread1.value }.success?.should be_true
-        timeout(1){ @detached_thread2.value }.success?.should be_true
+        Timeout.timeout(1){ @detached_thread1.value }.success?.should be true
+        Timeout.timeout(1){ @detached_thread2.value }.success?.should be true
       end
 
     end
 
     after do
       begin
-        Process.kill(:TERM, @pid1)
+        Process.kill(:KILL, @pid1)
       rescue Errno::ESRCH
       end
       begin
-        Process.kill(:TERM,@pid2)
+        Process.kill(:KILL,@pid2)
       rescue Errno::ESRCH
       end
+      Process.waitall
     end
 
   end
@@ -151,7 +152,7 @@ describe MultiProcessing::ConditionVariable do
       context "until signal" do
         it "blocks" do
           @mutex.synchronize do
-            proc{timeout(0.01){@cond.wait(@mutex)}}.should raise_error Timeout::Error
+            proc{Timeout.timeout(0.01){@cond.wait(@mutex)}}.should raise_error Timeout::Error
           end
         end
       end
@@ -159,7 +160,7 @@ describe MultiProcessing::ConditionVariable do
       context "after signal" do
         it "restarts" do
           @mutex.synchronize do
-            proc{timeout(0.03){@cond.wait(@mutex)}}.should_not raise_error Timeout::Error
+            proc{Timeout.timeout(0.03){@cond.wait(@mutex)}}.should_not raise_error
           end
         end
       end
@@ -169,6 +170,7 @@ describe MultiProcessing::ConditionVariable do
           Process.kill :KILL, @pid
         rescue Errno::ESRCH
         end
+        Process.waitall
       end
 
     end
@@ -192,7 +194,7 @@ describe MultiProcessing::ConditionVariable do
           @cond.wait(mutex)
         rescue ArgumentError
         end
-        @cond.signal.should be_false
+        @cond.signal.should be false
         # this means that inner variables are in the state that no process are waiting it
       end
 

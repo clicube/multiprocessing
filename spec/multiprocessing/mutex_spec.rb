@@ -39,7 +39,7 @@ describe MultiProcessing::Mutex do
       end
 
       it "blocks" do
-        proc{ timeout(0.01){ @mutex.lock } }.should raise_error Timeout::Error
+        proc{ Timeout.timeout(0.01){ @mutex.lock } }.should raise_error Timeout::Error
       end
 
     end
@@ -56,7 +56,7 @@ describe MultiProcessing::Mutex do
       end
 
       it "blocks" do
-        proc{ timeout(0.01){ @mutex.lock } }.should raise_error Timeout::Error
+        proc{ Timeout.timeout(0.01){ @mutex.lock } }.should raise_error Timeout::Error
       end
 
     end
@@ -160,14 +160,15 @@ describe MultiProcessing::Mutex do
 
         it "makes the other blocked thread restart" do
           @mutex.unlock
-          timeout(1){ @detached_thread.value }.should be_success
+          Timeout.timeout(1){ @detached_thread.value }.should be_success
         end
 
         after do
           begin
-            Process.kill :TERM, @pid
+            Process.kill :KILL, @pid
           rescue Errno::ESRCH
           end
+          Process.waitall
         end
 
       end
@@ -247,7 +248,7 @@ describe MultiProcessing::Mutex do
           sleep 0.01
           @mutex.should be_locked
           @mutex.unlock
-          timeout(1){ Process.detach(pid).value }.should be_success
+          Timeout.timeout(1){ Process.detach(pid).value }.should be_success
           @mutex.should_not be_locked
         end
       end
@@ -265,7 +266,7 @@ describe MultiProcessing::Mutex do
             exit! false # NG
           end
           @mutex.unlock
-          timeout(1){ Process.detach(pid).value }.should be_success
+          Timeout.timeout(1){ Process.detach(pid).value }.should be_success
           @mutex.should_not be_locked
         end
       end
@@ -279,7 +280,7 @@ describe MultiProcessing::Mutex do
 
     context "when not locked" do
       it "returns false" do
-        @mutex.locked?.should be_false
+        @mutex.locked?.should be false
       end
     end
 
@@ -287,7 +288,7 @@ describe MultiProcessing::Mutex do
       it "returns true" do
         fork{ @mutex.lock }
         sleep 0.01
-        @mutex.locked?.should be_true
+        @mutex.locked?.should be true
       end
     end
 
@@ -298,7 +299,7 @@ describe MultiProcessing::Mutex do
     context "when not locked" do
 
       it "returns true" do
-        @mutex.try_lock.should be_true
+        @mutex.try_lock.should be true
       end
 
       it "gets locked" do
@@ -320,7 +321,7 @@ describe MultiProcessing::Mutex do
       end
 
       it "returns false" do
-        @mutex.try_lock.should be_false
+        @mutex.try_lock.should be false
       end
 
       it "is still locked" do
@@ -417,7 +418,7 @@ describe MultiProcessing::Mutex do
             exit! false # NG
           end
           @mutex.should_not be_locked
-          timeout(1){ Process.detach(pid).value }.should be_success
+          Timeout.timeout(1){ Process.detach(pid).value }.should be_success
           @mutex.should_not be_locked
         end
       end
@@ -439,7 +440,7 @@ describe MultiProcessing::Mutex do
             exit! false # NG
           end
           @mutex.should_not be_locked
-          timeout(1){ Process.detach(pid).value }.should be_success
+          Timeout.timeout(1){ Process.detach(pid).value }.should be_success
           @mutex.should_not be_locked
         end
       end
@@ -466,7 +467,7 @@ describe MultiProcessing::Mutex do
         @mutex.synchronize do
           @mutex.sleep 0.01
         end
-        timeout(1){ @detached_thread.value }.should be_success
+        Timeout.timeout(1){ @detached_thread.value }.should be_success
       end
 
       it "re-locks after sleep" do
@@ -478,9 +479,10 @@ describe MultiProcessing::Mutex do
 
       after do
         begin
-          Process.kill :TERM, @pid
+          Process.kill :KILL, @pid
         rescue Errno::ESRCH
         end
+        Process.waitall
       end
 
     end
@@ -489,7 +491,7 @@ describe MultiProcessing::Mutex do
       it "re-locks" do
         @mutex.synchronize do
           begin
-            timeout(0.01){ @mutex.sleep }
+            Timeout.timeout(0.01){ @mutex.sleep }
           rescue Timeout::Error
           end
           @mutex.should be_locked

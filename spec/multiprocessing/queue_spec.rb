@@ -34,7 +34,7 @@ describe MultiProcessing::Queue do
   describe "#deq" do
 
     before do
-      @data_set = [ 123, 3.14, "neko", [1,2,3], {:cat=>"nyan", :dog=>"wan"} ]
+      @data_set = [ 123, 3.14, "neko", [1,2,3], {:cat=>"nyan", :dog=>"wan"},"あ" ,"é", "\xC3" ]
     end
 
     context "enqueued from same process" do
@@ -60,11 +60,11 @@ describe MultiProcessing::Queue do
           ret << @queue.deq
         end
         ret.should == @data_set
-
         begin
-          Process.kill :TERM, pid
+          Process.kill :KILL, pid
         rescue Errno::ESRCH
         end
+        Process.waitall
       end
     end
 
@@ -88,9 +88,10 @@ describe MultiProcessing::Queue do
           ret.should == :data
 
           begin
-            Process.kill :TERM, pid
+            Process.kill :KILL, pid
           rescue Errno::ESRCH
           end
+          Process.waitall
         end
       end
 
@@ -118,7 +119,7 @@ describe MultiProcessing::Queue do
       context "data have never enqueued" do
         it "returns immediatelyl" do
           @queue.close
-          proc{timeout(0.1){ @queue.join_thread }}.should_not raise_error Timeout::Error
+          proc{Timeout.timeout(0.1){ @queue.join_thread }}.should_not raise_error
         end
       end
 
@@ -128,9 +129,9 @@ describe MultiProcessing::Queue do
           data = "a" * 1024*65 # > pipe capacity(64K)
           @queue.enq data
           @queue.close
-          proc{timeout(0.1){ @queue.join_thread }}.should raise_error Timeout::Error
+          proc{Timeout.timeout(0.1){ @queue.join_thread }}.should raise_error Timeout::Error
           @queue.deq
-          proc{timeout(0.1){ @queue.join_thread }}.should_not raise_error Timeout::Error
+          proc{Timeout.timeout(0.1){ @queue.join_thread }}.should_not raise_error
         end
 
       end
@@ -239,9 +240,10 @@ describe MultiProcessing::Queue do
 
     after do
       begin
-        Process.kill :TERM, @pid
+        Process.kill :KILL, @pid
       rescue Errno::ESRCH
       end
+      Process.waitall
     end
 
   end
@@ -276,7 +278,7 @@ it "can pass object across processes" do
     sleep 0.1
   end
   result = []
-  timeout(1) do
+  Timeout.timeout(1) do
     data_list.length.times do
       result << queue.pop
     end
@@ -305,11 +307,12 @@ it "can pass large objects across processes" do
     sleep timeout_sec + 1
   end
   result = nil
-  timeout(timeout_sec) do
+  Timeout.timeout(timeout_sec) do
     queue1.push data
     result = queue2.pop
   end
-  Process.kill :TERM,pid
+  Process.kill :KILL,pid
+  Process.waitall
   result.should == data
 end
 
@@ -334,7 +337,7 @@ it "can pass as many as objects across processes" do
     sleep timeout_sec + 1
   end
   result = []
-  timeout(timeout_sec) do
+  Timeout.timeout(timeout_sec) do
     Thread.new do
       data_list.each do |data|
         queue1.push data
@@ -344,7 +347,8 @@ it "can pass as many as objects across processes" do
       result << queue2.pop
     end
   end
-  Process.kill :TERM,pid
+  Process.kill :KILL,pid
+  Process.waitall
   result.should == data_list
 end
 
@@ -371,7 +375,8 @@ it "can be closed and joined enqueue thread after enqueue" do
     queue.close.join_thread
   end
   th.join(timeout_sec).should_not be_nil
-  Process.kill :TERM,pid
+  Process.kill :KILL,pid
+  Process.waitall
 end
 
 it "cannot be joined before being closed" do

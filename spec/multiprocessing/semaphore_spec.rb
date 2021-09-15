@@ -27,7 +27,7 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
       end
 
       it "blocks" do
-        proc{ timeout(0.01){ @semaphore.P } }.should raise_error Timeout::Error
+        proc{ Timeout.timeout(0.01){ @semaphore.P } }.should raise_error Timeout::Error
       end
 
     end
@@ -60,9 +60,10 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
 
       after do
         begin
-          Process.kill :TERM, @pid
+          Process.kill :KILL, @pid
         rescue Errno::ESRCH
         end
+        Process.waitall
       end
 
     end
@@ -109,9 +110,10 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
 
       after do
         begin
-          Process.kill :TERM, @pid
+          Process.kill :KILL, @pid
         rescue Errno::ESRCH
         end
+        Process.waitall
       end
 
     end
@@ -122,7 +124,7 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
 
     context "when remaining resource" do
       it "returns true" do
-        @semaphore.try_P.should be_true
+        @semaphore.try_P.should be true
         @semaphore.count.should == 1
       end
     end
@@ -134,7 +136,7 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
           @semaphore.P
         end
         sleep 0.03
-        @semaphore.try_P.should be_false
+        @semaphore.try_P.should be false
         @semaphore.count.should == 0
       end
     end
@@ -148,7 +150,7 @@ describe MultiProcessing::Semaphore, "initialized with 2" do
         @semaphore.count.should == 1
         tmp = true
       end
-      tmp.should be_true
+      tmp.should be true
       @semaphore.count.should == 2
     end
   end
